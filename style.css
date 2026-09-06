@@ -2,7 +2,8 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -10,7 +11,7 @@ body {
     color: #333333;
     display: flex;
     justify-content: center;
-    padding: 20px 10px;
+    padding: 12px;
     min-height: 100vh;
 }
 
@@ -19,23 +20,56 @@ body {
 }
 
 
-/* TELA INICIAL */
+/* CARREGADOR (SPINNER) */
 
-.container-inicio {
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.7);
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #cbd5e1;
+    border-top: 4px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* LAYOUT CONTAINER */
+
+.container-inicio,
+.container-painel {
     width: 100%;
     max-width: 500px;
+    margin: 0 auto;
 }
 
 .card-inicio {
     background: #ffffff;
-    padding: 40px 30px;
+    padding: 30px 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     text-align: center;
-    width: 100%;
+    margin-top: 40px;
 }
 
 .card-inicio h1 {
@@ -48,53 +82,33 @@ body {
     margin-bottom: 24px;
 }
 
-
-/* PAINEL PRINCIPAL */
-
-.container-painel {
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-
-/* CABEÇALHO */
-
 .header-principal {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 0;
+    margin-bottom: 12px;
 }
 
 .header-principal h2 {
     color: #1b365d;
-    font-size: 1.4rem;
-    font-weight: bold;
-}
-
-.header-acoes {
-    display: flex;
-    gap: 8px;
+    font-size: 1.2rem;
 }
 
 
-/* BOTÕES GERAIS */
+/* BOTÕES */
 
 button {
     cursor: pointer;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: 600;
     font-size: 0.9rem;
-    padding: 8px 14px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    padding: 10px 14px;
+    transition: opacity 0.2s ease;
 }
 
 button:active {
-    transform: scale(0.98);
+    opacity: 0.8;
 }
 
 .btn-primary {
@@ -102,35 +116,14 @@ button:active {
     color: #ffffff;
 }
 
-.btn-primary:hover {
-    background-color: #1d4ed8;
-}
-
-.btn-secundario {
-    background-color: #475569;
-    color: #ffffff;
-}
-
-.btn-secundario:hover {
-    background-color: #334155;
-}
-
 .btn-danger {
     background-color: #ef4444;
     color: #ffffff;
 }
 
-.btn-danger:hover {
-    background-color: #dc2626;
-}
-
 .btn-warning {
     background-color: #eab308;
     color: #ffffff;
-}
-
-.btn-warning:hover {
-    background-color: #ca8a04;
 }
 
 .btn-full {
@@ -140,20 +133,21 @@ button:active {
 }
 
 
-/* NAVEGAÇÃO DE ABAS */
+/* NAV ABAS */
 
 .nav-abas {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    margin-bottom: 12px;
 }
 
 .btn-aba {
     flex: 1;
     background-color: #e2e8f0;
     color: #475569;
-    padding: 10px 6px;
-    border-radius: 8px;
+    padding: 10px 4px;
     font-size: 0.85rem;
+    text-align: center;
 }
 
 .btn-aba.active {
@@ -162,68 +156,52 @@ button:active {
 }
 
 
-/* CARD AZUL SUPERIOR (VALORES EM BRL) */
+/* CARD BLUE */
 
 .card-saldo-blue {
     background-color: #1b365d;
     color: #ffffff;
-    padding: 20px;
+    padding: 18px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    gap: 10px;
+    margin-bottom: 12px;
 }
 
 .saldo-linha-input {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 0.95rem;
 }
 
 .saldo-linha-input input {
-    width: 140px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    border: 1px solid #ffffff;
+    width: 130px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: none;
     text-align: right;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: bold;
-    color: #000000;
-    background-color: #ffffff;
-    outline: none;
 }
 
 .saldo-linha-valor {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.95rem;
-}
-
-.saldo-linha-valor strong {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
 }
 
 
-/* CONTEÚDO DAS ABAS */
+/* FORMULÁRIOS E INPUTS */
 
 .conteudo-abas {
     background-color: #ffffff;
     border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
-
-.aba-conteudo h3 {
-    color: #1b365d;
-    margin-bottom: 16px;
-}
-
-
-/* FORMULÁRIO DE LANÇAMENTO */
 
 .form-grid {
     display: flex;
@@ -238,7 +216,7 @@ button:active {
 }
 
 .form-group label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: #475569;
 }
@@ -247,30 +225,27 @@ button:active {
     padding: 10px;
     border: 1px solid #cbd5e1;
     border-radius: 6px;
-    font-size: 0.95rem;
+    font-size: 16px;
+    /* Previne zoom automático no Safari iOS */
     outline: none;
-}
-
-.form-group input:focus {
-    border-color: #2563eb;
 }
 
 .status-mensagem {
     margin-top: 10px;
     color: #16a34a;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     text-align: center;
 }
 
 
-/* TABELA DE RESUMO */
+/* TABELA */
 
 .resumo-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .tabela-responsive {
@@ -280,90 +255,49 @@ button:active {
 table {
     width: 100%;
     border-collapse: collapse;
-    text-align: left;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 th,
 td {
-    padding: 10px;
+    padding: 8px;
     border-bottom: 1px solid #e2e8f0;
-}
-
-th {
-    background-color: #f8fafc;
-    color: #475569;
+    text-align: left;
 }
 
 .btn-delete {
     background: transparent;
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
     padding: 4px;
 }
 
 .resumo-totalizer {
-    margin-top: 16px;
+    margin-top: 12px;
     text-align: right;
-    font-size: 1rem;
-    color: #1b365d;
+    font-size: 0.95rem;
 }
 
 
-/* CARDS DE FECHAMENTO COM BOTAO X NO CANTO DIREITO */
+/* CARDS FECHAMENTO */
 
 .container-fechamentos {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .fechamento-card {
     position: relative;
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 16px;
-}
-
-.fechamento-card h4 {
-    color: #1b365d;
-    margin-bottom: 10px;
-    font-size: 1.05rem;
-    padding-right: 28px;
-}
-
-.fechamento-card p {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-    color: #334155;
+    border-radius: 8px;
+    padding: 12px;
 }
 
 .btn-fechar-card {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 8px;
+    right: 8px;
     background: transparent;
-    border: none;
     color: #94a3b8;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    padding: 2px 8px;
-    border-radius: 50%;
-    line-height: 1;
-    transition: all 0.2s ease;
-}
-
-.btn-fechar-card:hover {
-    color: #ef4444;
-    background-color: #fee2e2;
-}
-
-.empty-msg {
-    color: #94a3b8;
-    font-style: italic;
-    text-align: center;
-    padding: 20px;
+    font-size: 1rem;
 }

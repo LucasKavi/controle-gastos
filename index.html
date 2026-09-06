@@ -3,42 +3,44 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Financeiro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Painel Financeiro Seguro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- TELA INICIAL DE BOAS-VINDAS -->
+    <!-- SPINNER DE CARREGAMENTO -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- TELA INICIAL -->
     <div id="tela-inicio" class="container-inicio">
         <div class="card-inicio">
             <h1>Painel Financeiro</h1>
-            <p>Gerencie seus gastos, acompanhe seu saldo e faça fechamentos de forma simples.</p>
-            <button id="btn-iniciar" class="btn-primary">Iniciar</button>
+            <p>Gerencie seus gastos com segurança.</p>
+            <button id="btn-iniciar" class="btn-primary">Acessar Painel</button>
         </div>
     </div>
 
     <!-- PAINEL PRINCIPAL -->
     <div id="painel-principal" class="container-painel hidden">
 
-        <!-- CABEÇALHO -->
         <header class="header-principal">
             <h2>PAINEL FINANCEIRO</h2>
             <div class="header-acoes">
-                <button id="btn-salvar-sessao" class="btn-secundario">Salvar</button>
                 <button id="btn-sair" class="btn-danger">Sair</button>
             </div>
         </header>
 
-        <!-- MENU DE NAVEGAÇÃO / ABAS -->
         <nav class="nav-abas">
-            <button id="btn-nav-lancamento" class="btn-aba active">➕ Novo Lançamento</button>
-            <button id="btn-nav-resumo" class="btn-aba">📊 Resumo de Gastos</button>
+            <button id="btn-nav-lancamento" class="btn-aba active">➕ Lançamento</button>
+            <button id="btn-nav-resumo" class="btn-aba">📊 Resumo</button>
             <button id="btn-nav-relatorio" class="btn-aba">📋 Fechamentos</button>
         </nav>
 
-        <!-- CARD SUPERIOR: SALDO E VALORES EM BRL -->
+        <!-- CARD SUPERIOR -->
         <section class="card-saldo-blue">
             <div class="saldo-linha-input">
                 <label for="saldo-inicial">Saldo Inicial (R$):</label>
@@ -54,7 +56,7 @@
             </div>
         </section>
 
-        <!-- CONTEÚDO DAS ABAS -->
+        <!-- ABAS -->
         <main class="conteudo-abas">
 
             <!-- ABA 1: NOVO LANÇAMENTO -->
@@ -67,7 +69,7 @@
                     </div>
                     <div class="form-group">
                         <label for="descricao">Descrição:</label>
-                        <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível" required>
+                        <input type="text" id="descricao" maxlength="100" placeholder="Ex: Mercado, Combustível" required autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label for="valor">Valor (R$):</label>
@@ -81,7 +83,7 @@
             <!-- ABA 2: RESUMO DE GASTOS -->
             <section id="tela-resumo" class="aba-conteudo hidden">
                 <div class="resumo-header">
-                    <h3>Resumo de Gastos do Mês</h3>
+                    <h3>Gastos do Mês</h3>
                     <button id="btn-fechar-mes" class="btn-warning">Fechar Mês</button>
                 </div>
 
@@ -92,11 +94,10 @@
                                 <th>Data</th>
                                 <th>Descrição</th>
                                 <th>Valor</th>
-                                <th>Ações</th>
+                                <th>Ação</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-body">
-                            <!-- Linhas geradas via JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -111,7 +112,6 @@
             <section id="tela-relatorio" class="aba-conteudo hidden">
                 <h3>Histórico de Fechamentos</h3>
                 <div id="container-fechamentos" class="container-fechamentos">
-                    <!-- Cards de fechamento gerados via JavaScript -->
                 </div>
             </section>
 
