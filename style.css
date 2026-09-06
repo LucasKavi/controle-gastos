@@ -332,3 +332,47 @@ th {
     font-size: 1rem;
     padding: 2px 6px;
 }
+
+
+/* AÇÕES E EDIÇÃO DO CARD FECHAMENTO */
+
+.fechamento-header-acoes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-delete-fechamento {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.btn-delete-fechamento:hover {
+    background-color: #fef08a;
+}
+
+.input-edit-fechamento {
+    background: transparent;
+    border: 1px dashed #ca8a04;
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 0.8rem;
+    color: #422006;
+    width: 100%;
+}
+
+.input-edit-fechamento:focus {
+    background: #ffffff;
+    outline: none;
+    border-style: solid;
+}
+
+.input-edit-fechamento.val-input {
+    text-align: right;
+    width: 80px;
+}

@@ -80,33 +80,63 @@ function atualizarInterface() {
         tabelaBody.appendChild(tr);
     });
 
-    // Renderizar Fechamentos
-    containerFechamentos.innerHTML = '';
-    if (dadosApp.fechamentos.length === 0) {
-        containerFechamentos.innerHTML = '<p style="color: #718096; font-size: 0.9rem;">Nenhum fechamento realizado ainda.</p>';
-    } else {
-        dadosApp.fechamentos.forEach((f, idx) => {
-                    const card = document.createElement('div');
-                    card.className = 'card card-fechamento';
+    // ATUALIZAR CÁLCULOS E TELAS
+    function atualizarInterface() {
+        dadosApp.saldoInicial = parseFloat(inputSaldoInicial.value) || 0;
 
-                    let tabelaItensHTML = '';
-                    if (f.itens && f.itens.length > 0) {
-                        tabelaItensHTML = `
+        const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
+        const saldoRestante = dadosApp.saldoInicial - totalGasto;
+
+        displayTotalGasto.textContent = totalGasto.toFixed(2);
+        displaySaldoRestante.textContent = saldoRestante.toFixed(2);
+        resumoTotalGastos.textContent = totalGasto.toFixed(2);
+
+        // Renderizar Tabela
+        tabelaBody.innerHTML = '';
+        dadosApp.gastos.forEach((gasto, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+      <td>${formatarDataBR(gasto.data)}</td>
+      <td>${gasto.descricao}</td>
+      <td>R$ ${gasto.valor.toFixed(2)}</td>
+      <td><button class="btn-delete" onclick="removerGasto(${index})">🗑️</button></td>
+    `;
+            tabelaBody.appendChild(tr);
+        });
+
+        // Renderizar Fechamentos
+        containerFechamentos.innerHTML = '';
+        if (dadosApp.fechamentos.length === 0) {
+            containerFechamentos.innerHTML = '<p style="color: #718096; font-size: 0.9rem;">Nenhum fechamento realizado ainda.</p>';
+        } else {
+            dadosApp.fechamentos.forEach((f, idx) => {
+                        const card = document.createElement('div');
+                        card.className = 'card card-fechamento';
+
+                        let tabelaItensHTML = '';
+                        if (f.itens && f.itens.length > 0) {
+                            tabelaItensHTML = `
                     <div class="fechamento-extrato-detalhes">
                         <table class="fechamento-tabela">
                             <thead>
                                 <tr>
                                     <th>Data</th>
                                     <th>Descrição</th>
-                                    <th>Valor</th>
+                                    <th>Valor (R$)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${f.itens.map(item => `
+                                ${f.itens.map((item, itemIdx) => `
                                     <tr>
-                                        <td>${formatarDataBR(item.data)}</td>
-                                        <td>${item.descricao}</td>
-                                        <td>R$ ${item.valor.toFixed(2)}</td>
+                                        <td>
+                                            <input type="text" class="input-edit-fechamento" value="${formatarDataBR(item.data)}" onchange="editarItemFechamento(${idx}, ${itemIdx}, 'data', this.value)">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="input-edit-fechamento" value="${item.descricao}" onchange="editarItemFechamento(${idx}, ${itemIdx}, 'descricao', this.value)">
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" class="input-edit-fechamento val-input" value="${item.valor.toFixed(2)}" onchange="editarItemFechamento(${idx}, ${itemIdx}, 'valor', this.value)">
+                                        </td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -114,6 +144,65 @@ function atualizarInterface() {
                     </div>
                 `;
             }
+
+            card.innerHTML = `
+                <div class="fechamento-header">
+                    <h4>Fechamento #${idx + 1}</h4>
+                    <div class="fechamento-header-acoes">
+                        <span>Data: ${f.dataFechamento}</span>
+                        <button class="btn-delete-fechamento" onclick="removerFechamento(${idx})" title="Excluir Fechamento">🗑️</button>
+                    </div>
+                </div>
+                <div class="fechamento-resumo">
+                    <p><span>Saldo Inicial:</span> <strong>R$ ${f.saldoInicial.toFixed(2)}</strong></p>
+                    <p><span>Total Gasto:</span> <strong>R$ ${f.totalGasto.toFixed(2)}</strong></p>
+                    <p><span>Saldo Final:</span> <strong>R$ ${f.saldoRestante.toFixed(2)}</strong></p>
+                </div>
+                ${tabelaItensHTML}
+            `;
+            containerFechamentos.appendChild(card);
+        });
+    }
+
+    salvarDadosNoAparelho();
+}
+
+// REMOVER FECHAMENTO
+window.removerFechamento = function(index) {
+    if (confirm(`Deseja realmente excluir o Fechamento #${index + 1}?`)) {
+        dadosApp.fechamentos.splice(index, 1);
+        atualizarInterface();
+    }
+};
+
+// EDITAR ITEM DE UM FECHAMENTO
+window.editarItemFechamento = function(fechamentoIdx, itemIdx, campo, novoValor) {
+    const fechamento = dadosApp.fechamentos[fechamentoIdx];
+    if (!fechamento || !fechamento.itens[itemIdx]) return;
+
+    if (campo === 'data') {
+        // Converte de DD/MM/AAAA para AAAA-MM-DD se necessário
+        if (novoValor.includes('/')) {
+            const [dia, mes, ano] = novoValor.split('/');
+            fechamento.itens[itemIdx].data = `${ano}-${mes}-${dia}`;
+        } else {
+            fechamento.itens[itemIdx].data = novoValor;
+        }
+    } else if (campo === 'descricao') {
+        fechamento.itens[itemIdx].descricao = novoValor.trim();
+    } else if (campo === 'valor') {
+        const val = parseFloat(novoValor);
+        if (!isNaN(val)) {
+            fechamento.itens[itemIdx].valor = val;
+            
+            // Recalcula totais do fechamento
+            fechamento.totalGasto = fechamento.itens.reduce((acc, curr) => acc + curr.valor, 0);
+            fechamento.saldoRestante = fechamento.saldoInicial - fechamento.totalGasto;
+        }
+    }
+
+    atualizarInterface();
+};
 
             card.innerHTML = `
                 <div class="fechamento-header">
