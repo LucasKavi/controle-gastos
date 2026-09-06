@@ -1,4 +1,6 @@
-// ESTADO DO APLICATIVO
+// SUBSTITUA PELA SUA URL DO WEB APP IMPLEMENTADO NO APPS SCRIPT
+const API_URL = "https://script.google.com/macros/s/SUA_URL_DO_WEB_APP/exec";
+
 let dadosApp = {
     saldoInicial: 0,
     gastos: [],
@@ -6,6 +8,7 @@ let dadosApp = {
 };
 
 // ELEM. DOM
+const loader = document.getElementById('loader');
 const telaInicio = document.getElementById('tela-inicio');
 const painelPrincipal = document.getElementById('painel-principal');
 const btnIniciar = document.getElementById('btn-iniciar');
@@ -27,20 +30,46 @@ const tabelaBody = document.getElementById('tabela-body');
 const resumoTotalGastos = document.getElementById('resumo-total-gastos');
 const containerFechamentos = document.getElementById('container-fechamentos');
 
-const btnSalvarSessao = document.getElementById('btn-salvar-sessao');
 const btnSair = document.getElementById('btn-sair');
 const btnFecharMes = document.getElementById('btn-fechar-mes');
 const statusMsg = document.getElementById('status-msg');
 
-// FORMATAR VALOR PARA MOEDA REAL (R$ 1.000,00)
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    }).format(valor || 0);
+// SANITIZAÇÃO DE ENTRADAS (PROTEÇÃO CONTRA XSS/MALWARE)
+function sanitizarEntrada(texto) {
+    const div = document.createElement('div');
+    div.innerText = texto;
+    return div.innerHTML;
 }
 
-// FORMATAR INPUT DIGITADO PARA MÁSCARA BRL (EX: 1.000,00)
+function exibirLoader(exibir) {
+    if (exibir) loader.classList.remove('hidden');
+    else loader.classList.add('hidden');
+}
+
+// REQUISIÇÃO SEGURA PARA O BACKEND
+async function requisitarAPI(dados) {
+    exibirLoader(true);
+    try {
+        const resposta = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(dados)
+        });
+        const resultado = await resposta.json();
+        exibirLoader(false);
+        return resultado;
+    } catch (erro) {
+        exibirLoader(false);
+        alert('Erro de conexão com o servidor.');
+        return null;
+    }
+}
+
+// FORMATADORES
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
+}
+
 function aplicarMascaraBRL(valorTexto) {
     let apenasNumeros = valorTexto.replace(/\D/g, '');
     if (!apenasNumeros) return '0,00';
@@ -48,78 +77,75 @@ function aplicarMascaraBRL(valorTexto) {
     return valorFloat.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-// CONVERTER TEXTO BRL PARA NÚMERO FLOAT
 function obterValorNumericoBRL(textoBrl) {
     if (!textoBrl) return 0;
     let limpo = textoBrl.replace(/\./g, '').replace(',', '.');
     return parseFloat(limpo) || 0;
 }
 
-// FORMATAR DATA: AAAA-MM-DD -> DD/MM/AAAA
-function formatarDataBR(dataIso) {
-    if (!dataIso) return '';
-    const [ano, mes, dia] = dataIso.split('-');
-    return `${dia}/${mes}/${ano}`;
-}
+// CARREGAR DADOS AO ABRIR/ATUALIZAR
+async function carregarDadosServidor() {
+    const res = await requisitarAPI({ action: 'carregarDados' });
+    if (res && res.status === 'sucesso') {
+        dadosApp.saldoInicial = res.saldoInicial;
+        dadosApp.gastos = res.gastos || [];
+        dadosApp.fechamentos = res.fechamentos || [];
 
-// CARREGAR DADOS DO ARMAZENAMENTO LOCAL
-function carregarDadosSalvos() {
-    const dadosLocais = localStorage.getItem('controle_gastos_dados');
-    if (dadosLocais) {
-        dadosApp = JSON.parse(dadosLocais);
+        let centavos = Math.round((dadosApp.saldoInicial || 0) * 100).toString();
+        inputSaldoInicial.value = aplicarMascaraBRL(centavos);
+
+        renderizarInterface();
     }
-
-    let valorEmCentavos = Math.round((dadosApp.saldoInicial || 0) * 100).toString();
-    inputSaldoInicial.value = aplicarMascaraBRL(valorEmCentavos);
-    atualizarInterface();
 }
 
-function salvarDadosNoAparelho() {
-    localStorage.setItem('controle_gastos_dados', JSON.stringify(dadosApp));
-}
-
-// MÁSCARA EM TEMPO REAL NO CAMPO DE SALDO INICIAL
+// ATUALIZAR MÁSCARA E SALVAR SALDO AO DIGITAR
+let timeoutSaldo;
 inputSaldoInicial.addEventListener('input', (e) => {
     e.target.value = aplicarMascaraBRL(e.target.value);
-    atualizarInterface();
+    dadosApp.saldoInicial = obterValorNumericoBRL(e.target.value);
+
+    renderizarInterfaceLocally();
+
+    clearTimeout(timeoutSaldo);
+    timeoutSaldo = setTimeout(() => {
+        requisitarAPI({ action: 'salvarSaldo', saldoInicial: dadosApp.saldoInicial });
+    }, 1000);
 });
 
-// ATUALIZAR CÁLCULOS E A INTERFACE DO USUÁRIO
-function atualizarInterface() {
-    dadosApp.saldoInicial = obterValorNumericoBRL(inputSaldoInicial.value);
-
-    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
+function renderizarInterfaceLocally() {
+    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + Number(curr.valor), 0);
     const saldoRestante = dadosApp.saldoInicial - totalGasto;
 
     displayTotalGasto.textContent = formatarMoeda(totalGasto);
     displaySaldoRestante.textContent = formatarMoeda(saldoRestante);
     resumoTotalGastos.textContent = formatarMoeda(totalGasto);
+}
 
-    // Renderizar Tabela de Resumo
+function renderizarInterface() {
+    renderizarInterfaceLocally();
+
     tabelaBody.innerHTML = '';
-    dadosApp.gastos.forEach((gasto, index) => {
+    dadosApp.gastos.forEach((gasto) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${formatarDataBR(gasto.data)}</td>
-      <td>${gasto.descricao}</td>
+      <td>${sanitizarEntrada(gasto.data)}</td>
+      <td>${sanitizarEntrada(gasto.descricao)}</td>
       <td>${formatarMoeda(gasto.valor)}</td>
-      <td><button class="btn-delete" onclick="removerGasto(${index})" title="Excluir item">🗑️</button></td>
+      <td><button class="btn-delete" onclick="removerGasto('${gasto.id}')">🗑️</button></td>
     `;
         tabelaBody.appendChild(tr);
     });
 
-    // Renderizar Fechamentos com Ícone "x" de exclusão no canto direito
     containerFechamentos.innerHTML = '';
     if (dadosApp.fechamentos.length === 0) {
-        containerFechamentos.innerHTML = '<p class="empty-msg">Nenhum fechamento realizado ainda.</p>';
+        containerFechamentos.innerHTML = '<p style="text-align:center; color:#94a3b8;">Nenhum fechamento registrado.</p>';
     } else {
-        dadosApp.fechamentos.forEach((f, idx) => {
+        dadosApp.fechamentos.forEach((f) => {
             const card = document.createElement('div');
             card.className = 'fechamento-card';
-
             card.innerHTML = `
-        <button class="btn-fechar-card" onclick="removerFechamento(${idx})" title="Excluir este fechamento">✖</button>
-        <h4>Fechamento #${idx + 1} - ${f.dataFechamento}</h4>
+        <button class="btn-fechar-card" onclick="removerFechamento('${f.id}')">✖</button>
+        <h4>Fechamento em ${sanitizarEntrada(f.dataFechamento)}</h4>
         <p><strong>Saldo Inicial:</strong> ${formatarMoeda(f.saldoInicial)}</p>
         <p><strong>Total Gasto:</strong> ${formatarMoeda(f.totalGasto)}</p>
         <p><strong>Saldo Final:</strong> ${formatarMoeda(f.saldoRestante)}</p>
@@ -127,12 +153,10 @@ function atualizarInterface() {
             containerFechamentos.appendChild(card);
         });
     }
-
-    salvarDadosNoAparelho();
 }
 
-// ADICIONAR UM NOVO GASTO
-formGasto.addEventListener('submit', (e) => {
+// ADICIONAR GASTO
+formGasto.addEventListener('submit', async(e) => {
     e.preventDefault();
 
     const data = document.getElementById('data').value;
@@ -141,76 +165,68 @@ formGasto.addEventListener('submit', (e) => {
 
     if (!data || !descricao || isNaN(valor)) return;
 
-    dadosApp.gastos.push({ data, descricao, valor });
-    atualizarInterface();
-
-    formGasto.reset();
-    statusMsg.textContent = 'Gasto lançado com sucesso!';
-    setTimeout(() => statusMsg.textContent = '', 3000);
+    const res = await requisitarAPI({ action: 'adicionarGasto', data, descricao, valor });
+    if (res && res.status === 'sucesso') {
+        formGasto.reset();
+        statusMsg.textContent = 'Lançamento salvo!';
+        setTimeout(() => statusMsg.textContent = '', 3000);
+        carregarDadosServidor();
+    }
 });
 
 // REMOVER GASTO INDIVIDUAL
-window.removerGasto = function(index) {
-    dadosApp.gastos.splice(index, 1);
-    atualizarInterface();
+window.removerGasto = async function(id) {
+    const res = await requisitarAPI({ action: 'removerGasto', id });
+    if (res && res.status === 'sucesso') {
+        carregarDadosServidor();
+    }
 };
 
 // REMOVER FECHAMENTO COMPLETO
-window.removerFechamento = function(index) {
-    if (confirm(`Deseja realmente excluir o Fechamento #${index + 1}?`)) {
-        dadosApp.fechamentos.splice(index, 1);
-        atualizarInterface();
+window.removerFechamento = async function(id) {
+    if (confirm('Deseja excluir este relatório de fechamento?')) {
+        const res = await requisitarAPI({ action: 'removerFechamento', id });
+        if (res && res.status === 'sucesso') {
+            carregarDadosServidor();
+        }
     }
 };
 
-// FECHAR O MÊS
-btnFecharMes.addEventListener('click', () => {
+// FECHAR MÊS
+btnFecharMes.addEventListener('click', async() => {
     if (dadosApp.gastos.length === 0) {
-        alert('Não há lançamentos para fechar o mês.');
+        alert('Não há gastos registrados para realizar o fechamento.');
         return;
     }
 
-    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
-    const agora = new Date();
-    const dataFormatada = agora.toLocaleDateString('pt-BR');
+    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + Number(curr.valor), 0);
+    const saldoRestante = dadosApp.saldoInicial - totalGasto;
 
-    dadosApp.fechamentos.push({
-        dataFechamento: dataFormatada,
+    const res = await requisitarAPI({
+        action: 'fecharMes',
         saldoInicial: dadosApp.saldoInicial,
         totalGasto: totalGasto,
-        saldoRestante: dadosApp.saldoInicial - totalGasto,
-        itens: [...dadosApp.gastos]
+        saldoRestante: saldoRestante
     });
 
-    dadosApp.gastos = [];
-    atualizarInterface();
-    alert('Mês fechado com sucesso!');
+    if (res && res.status === 'sucesso') {
+        alert('Mês fechado com sucesso!');
+        carregarDadosServidor();
+    }
 });
 
-// EVENTOS DE TELA E NAVEGAÇÃO
-window.addEventListener('DOMContentLoaded', () => {
-    telaInicio.classList.remove('hidden');
-    painelPrincipal.classList.add('hidden');
-});
-
+// NAVEGAÇÃO E INICIALIZAÇÃO
 btnIniciar.addEventListener('click', () => {
     telaInicio.classList.add('hidden');
     painelPrincipal.classList.remove('hidden');
-    carregarDadosSalvos();
-});
-
-btnSalvarSessao.addEventListener('click', () => {
-    salvarDadosNoAparelho();
-    alert('Dados salvos com sucesso!');
+    carregarDadosServidor();
 });
 
 btnSair.addEventListener('click', () => {
-    salvarDadosNoAparelho();
     painelPrincipal.classList.add('hidden');
     telaInicio.classList.remove('hidden');
 });
 
-// TROCA DE ABAS
 function trocarAba(abaAtiva, btnAtivo) {
     [telaLancamento, telaResumo, telaRelatorio].forEach(t => t.classList.add('hidden'));
     [btnNavLancamento, btnNavResumo, btnNavRelatorio].forEach(b => b.classList.remove('active'));
