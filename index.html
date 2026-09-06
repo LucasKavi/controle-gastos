@@ -4,123 +4,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Gastos</title>
-
-    <!-- Configurações para Web App / Celular -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Finanças">
-    <meta name="theme-color" content="#1b365d">
-
-    <!-- Ícone do App -->
-    <link rel="icon" type="image/png" sizes="512x512" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-
+    <title>Painel Financeiro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="container">
 
-        <!-- TELA INICIAL (BOAS-VINDAS) -->
-        <div id="tela-inicio" class="card welcome-card">
-            <img src="icon.png" alt="Logo Controle de Gastos" class="logo-inicio">
-            <h1>Controle de Gastos</h1>
-            <p class="subtitle">Gerencie suas finanças pessoais de forma simples e segura.</p>
-            <button id="btn-iniciar" class="btn-primary btn-lg">Iniciar</button>
+    <!-- TELA INICIAL DE BOAS-VINDAS -->
+    <div id="tela-inicio" class="container-inicio">
+        <div class="card-inicio">
+            <h1>Painel Financeiro</h1>
+            <p>Gerencie seus gastos, acompanhe seu saldo e faça fechamentos de forma simples.</p>
+            <button id="btn-iniciar" class="btn-primary">Iniciar</button>
         </div>
+    </div>
 
-        <!-- PAINEL PRINCIPAL -->
-        <main id="painel-principal" class="hidden">
+    <!-- PAINEL PRINCIPAL -->
+    <div id="painel-principal" class="container-painel hidden">
 
-            <!-- CABEÇALHO E AÇÕES DE SESSÃO -->
-            <header class="app-header">
-                <h2>PAINEL FINANCEIRO</h2>
-                <div class="session-actions">
-                    <button id="btn-salvar-sessao" class="btn-secondary btn-sm" title="Salvar dados neste aparelho">Salvar</button>
-                    <button id="btn-sair" class="btn-danger btn-sm" title="Sair do aplicativo">Sair</button>
-                </div>
-            </header>
+        <!-- CABEÇALHO -->
+        <header class="header-principal">
+            <h2>PAINEL FINANCEIRO</h2>
+            <div class="header-acoes">
+                <button id="btn-salvar-sessao" class="btn-secundario">Salvar</button>
+                <button id="btn-sair" class="btn-danger">Sair</button>
+            </div>
+        </header>
 
-            <!-- NAVEGAÇÃO -->
-            <nav class="nav-buttons">
-                <button id="btn-nav-lancamento" class="btn-nav active">➕ Novo Lançamento</button>
-                <button id="btn-nav-resumo" class="btn-nav">📊 Resumo de Gastos</button>
-                <button id="btn-nav-relatorio" class="btn-nav">📋 Fechamentos</button>
-            </nav>
+        <!-- MENU DE NAVEGAÇÃO / ABAS -->
+        <nav class="nav-abas">
+            <button id="btn-nav-lancamento" class="btn-aba active">➕ Novo Lançamento</button>
+            <button id="btn-nav-resumo" class="btn-aba">📊 Resumo de Gastos</button>
+            <button id="btn-nav-relatorio" class="btn-aba">📋 Fechamentos</button>
+        </nav>
 
-            <!-- CARD DE SALDO INICIAL -->
-            <section class="card saldo-card">
-                <div class="saldo-header">
-                    <label for="saldo-inicial">Saldo Inicial (R$):</label>
-                    <input type="number" id="saldo-inicial" step="0.01" value="0.00">
-                </div>
-                <div class="saldo-info">
-                    <p><strong>Total Gasto:</strong> <span id="display-total-gasto">R$ 0,00</span></p>
-                    <p><strong>Saldo Restante:</strong> <span id="display-saldo-restante">R$ 0,00</span></p>
-                </div>
-            </section>
+        <!-- CARD SUPERIOR: SALDO E VALORES EM BRL -->
+        <section class="card-saldo-blue">
+            <div class="saldo-linha-input">
+                <label for="saldo-inicial">Saldo Inicial (R$):</label>
+                <input type="text" id="saldo-inicial" value="0,00" inputmode="numeric">
+            </div>
+            <div class="saldo-linha-valor">
+                <span>Total Gasto:</span>
+                <strong id="display-total-gasto">R$ 0,00</strong>
+            </div>
+            <div class="saldo-linha-valor">
+                <span>Saldo Restante:</span>
+                <strong id="display-saldo-restante">R$ 0,00</strong>
+            </div>
+        </section>
 
-            <!-- TELA 1: NOVO LANÇAMENTO -->
-            <section id="tela-lancamento" class="card tab-content">
+        <!-- CONTEÚDO DAS ABAS -->
+        <main class="conteudo-abas">
+
+            <!-- ABA 1: NOVO LANÇAMENTO -->
+            <section id="tela-lancamento" class="aba-conteudo">
                 <h3>Novo Lançamento</h3>
-                <form id="form-gasto">
+                <form id="form-gasto" class="form-grid">
                     <div class="form-group">
                         <label for="data">Data:</label>
                         <input type="date" id="data" required>
                     </div>
-
                     <div class="form-group">
-                        <label for="descricao">Descrição (somente texto):</label>
-                        <input type="text" id="descricao" placeholder="Ex: Mercado, Uber, Farmácia" required pattern="[^0-9]*" title="Números não são permitidos na descrição">
+                        <label for="descricao">Descrição:</label>
+                        <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível" required>
                     </div>
-
                     <div class="form-group">
                         <label for="valor">Valor (R$):</label>
-                        <input type="number" step="0.01" id="valor" placeholder="0.00" required>
+                        <input type="number" id="valor" step="0.01" min="0.01" placeholder="0.00" required>
                     </div>
-
-                    <button type="submit" id="btn-salvar" class="btn-primary btn-block">➕ Novo Lançamento</button>
+                    <button type="submit" class="btn-primary btn-full">Adicionar Gasto</button>
                 </form>
-                <p id="status-msg" class="status-msg"></p>
+                <p id="status-msg" class="status-mensagem"></p>
             </section>
 
-            <!-- TELA 2: RESUMO DE GASTOS -->
-            <section id="tela-resumo" class="card tab-content hidden">
-                <h3>Resumo Detalhado</h3>
-                <div class="table-container">
+            <!-- ABA 2: RESUMO DE GASTOS -->
+            <section id="tela-resumo" class="aba-conteudo hidden">
+                <div class="resumo-header">
+                    <h3>Resumo de Gastos do Mês</h3>
+                    <button id="btn-fechar-mes" class="btn-warning">Fechar Mês</button>
+                </div>
+
+                <div class="tabela-responsive">
                     <table>
                         <thead>
                             <tr>
                                 <th>Data</th>
                                 <th>Descrição</th>
                                 <th>Valor</th>
-                                <th>Ação</th>
+                                <th>Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-body">
-                            <!-- Linhas inseridas dinamicamente -->
+                            <!-- Linhas geradas via JavaScript -->
                         </tbody>
                     </table>
                 </div>
-                <div class="total-box">
-                    <strong>Total Geral de Gastos:</strong> <span id="resumo-total-gastos">R$ 0,00</span>
-                </div>
 
-                <button id="btn-fechar-mes" class="btn-warning btn-block">Fechar Mês Atual</button>
+                <div class="resumo-totalizer">
+                    <strong>Total em Aberto: </strong>
+                    <span id="resumo-total-gastos">R$ 0,00</span>
+                </div>
             </section>
 
-            <!-- TELA 3: HISTÓRICO DE FECHAMENTOS (EXTRATOS) -->
-            <section id="tela-relatorio" class="card tab-content hidden">
+            <!-- ABA 3: HISTÓRICO DE FECHAMENTOS -->
+            <section id="tela-relatorio" class="aba-conteudo hidden">
                 <h3>Histórico de Fechamentos</h3>
-                <div id="container-fechamentos">
-                    <!-- Cupons/Extratos amarelos inseridos dinamicamente -->
+                <div id="container-fechamentos" class="container-fechamentos">
+                    <!-- Cards de fechamento gerados via JavaScript -->
                 </div>
             </section>
 
         </main>
-
     </div>
 
     <script src="script.js"></script>
