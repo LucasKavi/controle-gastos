@@ -20,7 +20,29 @@ body {
 h2 {
     text-align: center;
     color: #1a252f;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.btn-nav {
+    flex: 1;
+    background-color: #e2e8f0;
+    color: #334155;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-nav.active {
+    background-color: #1b365d;
+    color: white;
 }
 
 .card {
@@ -28,11 +50,34 @@ h2 {
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 16px;
 }
 
-.card h3 {
-    margin-bottom: 16px;
-    color: #2c3e50;
+.saldo-card {
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+}
+
+.saldo-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.saldo-header input {
+    width: 120px;
+    padding: 6px;
+    border: 1px solid #a5b4fc;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.saldo-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
 }
 
 label {
@@ -49,10 +94,9 @@ input {
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 16px;
-    /* Evita zoom automático no iOS */
 }
 
-button {
+button[type="submit"] {
     width: 100%;
     background-color: #1b365d;
     color: white;
@@ -65,12 +109,46 @@ button {
     cursor: pointer;
 }
 
-button:active {
-    background-color: #0f223d;
-}
-
 #status-msg {
     margin-top: 12px;
     text-align: center;
     font-weight: bold;
+}
+
+.hidden {
+    display: none;
+}
+
+
+/* Estilos da Tabela */
+
+.table-container {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-top: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+th {
+    background-color: #f1f5f9;
+}
+
+.total-box {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 2px solid #1b365d;
+    font-size: 16px;
+    text-align: right;
 }
