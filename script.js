@@ -1,5 +1,5 @@
 // CONFIGURAÇÕES E API
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby88vN8kNSd4hD7QzNLUZ0p3CNJe0l6sNPUxS3Hw8yqkB5cypub7tmRD_qQ9n7QpL4Pww/exec";
+const APPS_SCRIPT_URL = 'SUA_URL_DO_APPS_SCRIPT_AQUI';
 
 // ESTADO DO APLICATIVO
 let dadosApp = {
