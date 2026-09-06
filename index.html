@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Gastos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h2>PAINEL FINANCEIRO</h2>
+
+        <!-- Bloco de Formulário -->
+        <div class="card">
+            <h3>Novo Lançamento</h3>
+            <form id="form-gasto">
+                <label>Data:</label>
+                <input type="date" id="data" required>
+
+                <label>Descrição:</label>
+                <input type="text" id="descricao" placeholder="Ex: Uber, Ifood, Mercado" required>
+
+                <label>Valor (R$):</label>
+                <input type="number" step="0.01" id="valor" placeholder="0,00" required>
+
+                <button type="submit" id="btn-salvar">➕ Lançar Gasto</button>
+            </form>
+            <p id="status-msg"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
