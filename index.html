@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle de Gastos</title>
+
+    <!-- Configurações do App/Atalho no Celular -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Finanças">
+    <meta name="theme-color" content="#1b365d">
+
+    <!-- Ícones do App usando a sua imagem personalizada -->
+    <link rel="icon" type="image/png" sizes="512x512" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -63,7 +75,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabela-body">
-                        <!-- Linhas inseridas dinamicamente com o botão X -->
+                        <!-- Linhas inseridas dinamicamente via JS -->
                     </tbody>
                 </table>
             </div>
@@ -75,11 +87,11 @@
             <button id="btn-fechar-mes" class="btn-fechar-mes">🔒 Fechar Mês Atual</button>
         </div>
 
-        <!-- TELA 3: Relatório dos Fechamentos (Estilo Extrato Máquina de Cartão) -->
+        <!-- TELA 3: Relatório dos Fechamentos (Estilo Extrato) -->
         <div id="tela-relatorio" class="card hidden">
             <h3>Histórico de Fechamentos</h3>
             <div id="container-fechamentos">
-                <!-- Extratos estilo máquina de cartão inseridos via JS -->
+                <!-- Extratos inseridos dinamicamente via JS -->
             </div>
         </div>
 
