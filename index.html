@@ -28,18 +28,18 @@
             <img src="icon.png" alt="Logo Controle de Gastos" class="logo-inicio">
             <h1>Controle de Gastos</h1>
             <p class="subtitle">Gerencie suas finanças pessoais de forma simples e segura.</p>
-            <button id="btn-iniciar" class="btn-primary btn-lg">🚀 Iniciar</button>
+            <button id="btn-iniciar" class="btn-primary btn-lg">Iniciar</button>
         </div>
 
-        <!-- PAINEL PRINCIPAL (ESCONDIDO ATÉ CLICAR EM INICIAR) -->
+        <!-- PAINEL PRINCIPAL -->
         <main id="painel-principal" class="hidden">
 
             <!-- CABEÇALHO E AÇÕES DE SESSÃO -->
             <header class="app-header">
                 <h2>PAINEL FINANCEIRO</h2>
                 <div class="session-actions">
-                    <button id="btn-salvar-sessao" class="btn-secondary btn-sm" title="Salvar dados neste aparelho">💾 Salvar</button>
-                    <button id="btn-sair" class="btn-danger btn-sm" title="Sair do aplicativo">🚪 Sair</button>
+                    <button id="btn-salvar-sessao" class="btn-secondary btn-sm" title="Salvar dados neste aparelho">Salvar</button>
+                    <button id="btn-sair" class="btn-danger btn-sm" title="Sair do aplicativo">Sair</button>
                 </div>
             </header>
 
@@ -57,10 +57,8 @@
                     <input type="number" id="saldo-inicial" step="0.01" value="0.00">
                 </div>
                 <div class="saldo-info">
-                    <p><strong>Total Gasto:</strong> <span class="val-gasto">R$ <span id="display-total-gasto">0.00</span></span>
-                    </p>
-                    <p><strong>Saldo Restante:</strong> <span class="val-restante">R$ <span id="display-saldo-restante">0.00</span></span>
-                    </p>
+                    <p><strong>Total Gasto:</strong> <span id="display-total-gasto">R$ 0,00</span></p>
+                    <p><strong>Saldo Restante:</strong> <span id="display-saldo-restante">R$ 0,00</span></p>
                 </div>
             </section>
 
@@ -83,7 +81,7 @@
                         <input type="number" step="0.01" id="valor" placeholder="0.00" required>
                     </div>
 
-                    <button type="submit" id="btn-salvar" class="btn-primary btn-block">➕ Lançar Gasto</button>
+                    <button type="submit" id="btn-salvar" class="btn-primary btn-block">➕ Novo Lançamento</button>
                 </form>
                 <p id="status-msg" class="status-msg"></p>
             </section>
@@ -97,7 +95,7 @@
                             <tr>
                                 <th>Data</th>
                                 <th>Descrição</th>
-                                <th>Valor (R$)</th>
+                                <th>Valor</th>
                                 <th>Ação</th>
                             </tr>
                         </thead>
@@ -107,17 +105,17 @@
                     </table>
                 </div>
                 <div class="total-box">
-                    <strong>Total Geral de Gastos:</strong> R$ <span id="resumo-total-gastos">0.00</span>
+                    <strong>Total Geral de Gastos:</strong> <span id="resumo-total-gastos">R$ 0,00</span>
                 </div>
 
-                <button id="btn-fechar-mes" class="btn-warning btn-block">🔒 Fechar Mês Atual</button>
+                <button id="btn-fechar-mes" class="btn-warning btn-block">Fechar Mês Atual</button>
             </section>
 
-            <!-- TELA 3: HISTÓRICO DE FECHAMENTOS -->
+            <!-- TELA 3: HISTÓRICO DE FECHAMENTOS (EXTRATOS) -->
             <section id="tela-relatorio" class="card tab-content hidden">
                 <h3>Histórico de Fechamentos</h3>
                 <div id="container-fechamentos">
-                    <!-- Fechamentos salvos aparecerão aqui -->
+                    <!-- Cupons/Extratos amarelos inseridos dinamicamente -->
                 </div>
             </section>
 
