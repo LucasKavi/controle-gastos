@@ -12,10 +12,11 @@
     <div class="container">
         <h2>PAINEL FINANCEIRO</h2>
 
-        <!-- Navegação -->
+        <!-- Navegação (3 Botões) -->
         <div class="nav-buttons">
             <button id="btn-nav-lancamento" class="btn-nav active">➕ Novo Lançamento</button>
             <button id="btn-nav-resumo" class="btn-nav">📊 Resumo de Gastos</button>
+            <button id="btn-nav-relatorio" class="btn-nav">📋 Relatório dos Fechamentos</button>
         </div>
 
         <!-- Card de Saldo Inicial -->
@@ -30,7 +31,7 @@
             </div>
         </div>
 
-        <!-- TELA 1: Formulário de Lançamento -->
+        <!-- TELA 1: Novo Lançamento -->
         <div id="tela-lancamento" class="card">
             <h3>Novo Lançamento</h3>
             <form id="form-gasto">
@@ -38,7 +39,7 @@
                 <input type="date" id="data" required>
 
                 <label>Descrição (Somente texto):</label>
-                <input type="text" id="descricao" placeholder="Ex: Uber, Ifood, Mercado" required pattern="[^0-9]*" title="Não é permitido digitar números na descrição">
+                <input type="text" id="descricao" placeholder="Ex: Uber, Mercado" required pattern="[^0-9]*" title="Não é permitido números">
 
                 <label>Valor (R$):</label>
                 <input type="number" step="0.01" id="valor" placeholder="0,00" required>
@@ -58,17 +59,30 @@
                             <th>Data</th>
                             <th>Descrição</th>
                             <th>Valor (R$)</th>
+                            <th>Ação</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-body">
-                        <!-- Os dados serão inseridos via JavaScript -->
+                        <!-- Linhas inseridas dinamicamente com o botão X -->
                     </tbody>
                 </table>
             </div>
             <div class="total-box">
                 <strong>Total Geral de Gastos:</strong> R$ <span id="resumo-total-gastos">0.00</span>
             </div>
+
+            <!-- Botão Fechar Mês -->
+            <button id="btn-fechar-mes" class="btn-fechar-mes">🔒 Fechar Mês Atual</button>
         </div>
+
+        <!-- TELA 3: Relatório dos Fechamentos (Estilo Extrato Máquina de Cartão) -->
+        <div id="tela-relatorio" class="card hidden">
+            <h3>Histórico de Fechamentos</h3>
+            <div id="container-fechamentos">
+                <!-- Extratos estilo máquina de cartão inseridos via JS -->
+            </div>
+        </div>
+
     </div>
 
     <script src="script.js"></script>

@@ -1,6 +1,6 @@
 * {
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Courier New', Courier, monospace, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
 }
@@ -14,18 +14,19 @@ body {
 
 .container {
     width: 100%;
-    max-width: 420px;
+    max-width: 440px;
 }
 
 h2 {
     text-align: center;
     color: #1a252f;
     margin-bottom: 16px;
+    font-family: sans-serif;
 }
 
 .nav-buttons {
     display: flex;
-    gap: 8px;
+    gap: 4px;
     margin-bottom: 12px;
 }
 
@@ -34,10 +35,12 @@ h2 {
     background-color: #e2e8f0;
     color: #334155;
     border: none;
-    padding: 10px;
-    border-radius: 8px;
+    padding: 8px 4px;
+    border-radius: 6px;
     font-weight: bold;
+    font-size: 11px;
     cursor: pointer;
+    font-family: sans-serif;
 }
 
 .btn-nav.active {
@@ -47,10 +50,11 @@ h2 {
 
 .card {
     background: white;
-    padding: 20px;
+    padding: 18px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     margin-bottom: 16px;
+    font-family: sans-serif;
 }
 
 .saldo-card {
@@ -67,7 +71,7 @@ h2 {
 }
 
 .saldo-header input {
-    width: 120px;
+    width: 110px;
     padding: 6px;
     border: 1px solid #a5b4fc;
     border-radius: 6px;
@@ -77,23 +81,23 @@ h2 {
 .saldo-info {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 label {
     display: block;
     font-weight: 600;
-    margin-top: 12px;
+    margin-top: 10px;
     margin-bottom: 4px;
     color: #555;
 }
 
 input {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 button[type="submit"] {
@@ -101,10 +105,10 @@ button[type="submit"] {
     background-color: #1b365d;
     color: white;
     border: none;
-    padding: 14px;
-    margin-top: 20px;
+    padding: 12px;
+    margin-top: 16px;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -120,7 +124,7 @@ button[type="submit"] {
 }
 
 
-/* Estilos da Tabela */
+/* Tabela e Botão X */
 
 .table-container {
     max-height: 250px;
@@ -135,20 +139,121 @@ table {
 
 th,
 td {
-    padding: 8px;
+    padding: 8px 4px;
     text-align: left;
     border-bottom: 1px solid #ddd;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 th {
     background-color: #f1f5f9;
 }
 
+.btn-excluir-linha {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+    text-align: center;
+}
+
 .total-box {
-    margin-top: 16px;
-    padding-top: 12px;
+    margin-top: 14px;
+    padding-top: 10px;
     border-top: 2px solid #1b365d;
-    font-size: 16px;
+    font-size: 15px;
     text-align: right;
+}
+
+.btn-fechar-mes {
+    width: 100%;
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    padding: 12px;
+    margin-top: 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+
+/* ESTILO EXTRATO MÁQUINA DE CARTÃO (AMARELO CLARO) */
+
+.extrato-card {
+    background-color: #fef9c3;
+    /* Amarelo claro recibo */
+    border: 1px dashed #ca8a04;
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 20px;
+    font-family: 'Courier New', Courier, monospace;
+    color: #1c1917;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.extrato-header {
+    text-align: center;
+    border-bottom: 1px dashed #ca8a04;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.extrato-header h4 {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.extrato-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px dot-dash #eab308;
+}
+
+.extrato-item-acoes {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-edit-item {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.extrato-total {
+    border-top: 2px dashed #ca8a04;
+    margin-top: 10px;
+    padding-top: 8px;
+    text-align: right;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.btn-del-fechamento {
+    width: 100%;
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px;
+    margin-top: 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: sans-serif;
 }
