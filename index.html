@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Painel Financeiro Seguro</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="icone.png">
 </head>
 
 <body>
@@ -69,13 +69,13 @@
                     </div>
                     <div class="form-group">
                         <label for="descricao">Descrição:</label>
-                        <input type="text" id="descricao" maxlength="100" placeholder="Ex: Mercado, Combustível" required autocomplete="off">
+                        <input type="text" id="descricao" placeholder="Ex: Mercado" required autocomplete="off">
                     </div>
                     <div class="form-group">
                         <label for="valor">Valor (R$):</label>
                         <input type="number" id="valor" step="0.01" min="0.01" placeholder="0.00" required>
                     </div>
-                    <button type="submit" class="btn-primary btn-full">Adicionar Gasto</button>
+                    <button type="submit" id="btn-adicionar-gasto" class="btn-primary btn-full">Adicionar Gasto</button>
                 </form>
                 <p id="status-msg" class="status-mensagem"></p>
             </section>

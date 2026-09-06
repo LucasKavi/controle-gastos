@@ -1,5 +1,4 @@
-// SUBSTITUA PELA SUA URL DO WEB APP IMPLEMENTADO NO APPS SCRIPT
-const API_URL = "https://script.google.com/macros/s/SUA_URL_DO_WEB_APP/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby88vN8kNSd4hD7QzNLUZ0p3CNJe0l6sNPUxS3Hw8yqkB5cypub7tmRD_qQ9n7QpL4Pww/exec";
 
 let dadosApp = {
     saldoInicial: 0,
@@ -100,16 +99,16 @@ async function carregarDadosServidor() {
 
 // ATUALIZAR MÁSCARA E SALVAR SALDO AO DIGITAR
 let timeoutSaldo;
-inputSaldoInicial.addEventListener('input', (e) => {
+document.getElementById('saldo-inicial').addEventListener('input', (e) => {
     e.target.value = aplicarMascaraBRL(e.target.value);
     dadosApp.saldoInicial = obterValorNumericoBRL(e.target.value);
 
     renderizarInterfaceLocally();
 
     clearTimeout(timeoutSaldo);
-    timeoutSaldo = setTimeout(() => {
-        requisitarAPI({ action: 'salvarSaldo', saldoInicial: dadosApp.saldoInicial });
-    }, 1000);
+    timeoutSaldo = setTimeout(async() => {
+        await requisitarAPI({ action: 'salvarSaldo', saldoInicial: dadosApp.saldoInicial });
+    }, 800);
 });
 
 function renderizarInterfaceLocally() {
