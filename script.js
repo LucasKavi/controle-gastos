@@ -1,5 +1,7 @@
-const API_URL = "https://script.google.com/macros/s/AKfycby88vN8kNSd4hD7QzNLUZ0p3CNJe0l6sNPUxS3Hw8yqkB5cypub7tmRD_qQ9n7QpL4Pww/exec";
+// CONFIGURAÇÕES E API
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby88vN8kNSd4hD7QzNLUZ0p3CNJe0l6sNPUxS3Hw8yqkB5cypub7tmRD_qQ9n7QpL4Pww/exec";
 
+// ESTADO DO APLICATIVO
 let dadosApp = {
     saldoInicial: 0,
     gastos: [],
@@ -7,7 +9,6 @@ let dadosApp = {
 };
 
 // ELEM. DOM
-const loader = document.getElementById('loader');
 const telaInicio = document.getElementById('tela-inicio');
 const painelPrincipal = document.getElementById('painel-principal');
 const btnIniciar = document.getElementById('btn-iniciar');
@@ -29,133 +30,112 @@ const tabelaBody = document.getElementById('tabela-body');
 const resumoTotalGastos = document.getElementById('resumo-total-gastos');
 const containerFechamentos = document.getElementById('container-fechamentos');
 
+const btnSalvarSessao = document.getElementById('btn-salvar-sessao');
 const btnSair = document.getElementById('btn-sair');
 const btnFecharMes = document.getElementById('btn-fechar-mes');
 const statusMsg = document.getElementById('status-msg');
 
-// SANITIZAÇÃO DE ENTRADAS (PROTEÇÃO CONTRA XSS/MALWARE)
-function sanitizarEntrada(texto) {
-    const div = document.createElement('div');
-    div.innerText = texto;
-    return div.innerHTML;
+// FORMATAR DATA: AAAA-MM-DD -> DD/MM/AAAA
+function formatarDataBR(dataIso) {
+    if (!dataIso) return '';
+    const [ano, mes, dia] = dataIso.split('-');
+    return `${dia}/${mes}/${ano}`;
 }
 
-function exibirLoader(exibir) {
-    if (exibir) loader.classList.remove('hidden');
-    else loader.classList.add('hidden');
-}
-
-// REQUISIÇÃO SEGURA PARA O BACKEND
-async function requisitarAPI(dados) {
-    exibirLoader(true);
-    try {
-        const resposta = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(dados)
-        });
-        const resultado = await resposta.json();
-        exibirLoader(false);
-        return resultado;
-    } catch (erro) {
-        exibirLoader(false);
-        alert('Erro de conexão com o servidor.');
-        return null;
+// INICIALIZAR E CARREGAR DADOS DO DISPOSITIVO
+function carregarDadosSalvos() {
+    const dadosLocais = localStorage.getItem('controle_gastos_dados');
+    if (dadosLocais) {
+        dadosApp = JSON.parse(dadosLocais);
     }
+    inputSaldoInicial.value = dadosApp.saldoInicial.toFixed(2);
+    atualizarInterface();
 }
 
-// FORMATADORES
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor || 0);
+function salvarDadosNoAparelho() {
+    localStorage.setItem('controle_gastos_dados', JSON.stringify(dadosApp));
 }
 
-function aplicarMascaraBRL(valorTexto) {
-    let apenasNumeros = valorTexto.replace(/\D/g, '');
-    if (!apenasNumeros) return '0,00';
-    let valorFloat = (parseFloat(apenasNumeros) / 100).toFixed(2);
-    return valorFloat.replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-}
+// ATUALIZAR CÁLCULOS E TELAS
+function atualizarInterface() {
+    dadosApp.saldoInicial = parseFloat(inputSaldoInicial.value) || 0;
 
-function obterValorNumericoBRL(textoBrl) {
-    if (!textoBrl) return 0;
-    let limpo = textoBrl.replace(/\./g, '').replace(',', '.');
-    return parseFloat(limpo) || 0;
-}
-
-// CARREGAR DADOS AO ABRIR/ATUALIZAR
-async function carregarDadosServidor() {
-    const res = await requisitarAPI({ action: 'carregarDados' });
-    if (res && res.status === 'sucesso') {
-        dadosApp.saldoInicial = res.saldoInicial;
-        dadosApp.gastos = res.gastos || [];
-        dadosApp.fechamentos = res.fechamentos || [];
-
-        let centavos = Math.round((dadosApp.saldoInicial || 0) * 100).toString();
-        inputSaldoInicial.value = aplicarMascaraBRL(centavos);
-
-        renderizarInterface();
-    }
-}
-
-// ATUALIZAR MÁSCARA E SALVAR SALDO AO DIGITAR
-let timeoutSaldo;
-document.getElementById('saldo-inicial').addEventListener('input', (e) => {
-    e.target.value = aplicarMascaraBRL(e.target.value);
-    dadosApp.saldoInicial = obterValorNumericoBRL(e.target.value);
-
-    renderizarInterfaceLocally();
-
-    clearTimeout(timeoutSaldo);
-    timeoutSaldo = setTimeout(async() => {
-        await requisitarAPI({ action: 'salvarSaldo', saldoInicial: dadosApp.saldoInicial });
-    }, 800);
-});
-
-function renderizarInterfaceLocally() {
-    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + Number(curr.valor), 0);
+    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
     const saldoRestante = dadosApp.saldoInicial - totalGasto;
 
-    displayTotalGasto.textContent = formatarMoeda(totalGasto);
-    displaySaldoRestante.textContent = formatarMoeda(saldoRestante);
-    resumoTotalGastos.textContent = formatarMoeda(totalGasto);
-}
+    displayTotalGasto.textContent = totalGasto.toFixed(2);
+    displaySaldoRestante.textContent = saldoRestante.toFixed(2);
+    resumoTotalGastos.textContent = totalGasto.toFixed(2);
 
-function renderizarInterface() {
-    renderizarInterfaceLocally();
-
+    // Renderizar Tabela
     tabelaBody.innerHTML = '';
-    dadosApp.gastos.forEach((gasto) => {
+    dadosApp.gastos.forEach((gasto, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${sanitizarEntrada(gasto.data)}</td>
-      <td>${sanitizarEntrada(gasto.descricao)}</td>
-      <td>${formatarMoeda(gasto.valor)}</td>
-      <td><button class="btn-delete" onclick="removerGasto('${gasto.id}')">🗑️</button></td>
+      <td>${formatarDataBR(gasto.data)}</td>
+      <td>${gasto.descricao}</td>
+      <td>R$ ${gasto.valor.toFixed(2)}</td>
+      <td><button class="btn-delete" onclick="removerGasto(${index})">🗑️</button></td>
     `;
         tabelaBody.appendChild(tr);
     });
 
+    // Renderizar Fechamentos
     containerFechamentos.innerHTML = '';
     if (dadosApp.fechamentos.length === 0) {
-        containerFechamentos.innerHTML = '<p style="text-align:center; color:#94a3b8;">Nenhum fechamento registrado.</p>';
+        containerFechamentos.innerHTML = '<p style="color: #718096; font-size: 0.9rem;">Nenhum fechamento realizado ainda.</p>';
     } else {
-        dadosApp.fechamentos.forEach((f) => {
-            const card = document.createElement('div');
-            card.className = 'fechamento-card';
+        dadosApp.fechamentos.forEach((f, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'card card-fechamento';
+
+                    let tabelaItensHTML = '';
+                    if (f.itens && f.itens.length > 0) {
+                        tabelaItensHTML = `
+                    <div class="fechamento-extrato-detalhes">
+                        <table class="fechamento-tabela">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Descrição</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${f.itens.map(item => `
+                                    <tr>
+                                        <td>${formatarDataBR(item.data)}</td>
+                                        <td>${item.descricao}</td>
+                                        <td>R$ ${item.valor.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
             card.innerHTML = `
-        <button class="btn-fechar-card" onclick="removerFechamento('${f.id}')">✖</button>
-        <h4>Fechamento em ${sanitizarEntrada(f.dataFechamento)}</h4>
-        <p><strong>Saldo Inicial:</strong> ${formatarMoeda(f.saldoInicial)}</p>
-        <p><strong>Total Gasto:</strong> ${formatarMoeda(f.totalGasto)}</p>
-        <p><strong>Saldo Final:</strong> ${formatarMoeda(f.saldoRestante)}</p>
-      `;
+                <div class="fechamento-header">
+                    <h4>Fechamento #${idx + 1}</h4>
+                    <span>Data: ${f.dataFechamento}</span>
+                </div>
+                <div class="fechamento-resumo">
+                    <p><span>Saldo Inicial:</span> <strong>R$ ${f.saldoInicial.toFixed(2)}</strong></p>
+                    <p><span>Total Gasto:</span> <strong>R$ ${f.totalGasto.toFixed(2)}</strong></p>
+                    <p><span>Saldo Final:</span> <strong>R$ ${f.saldoRestante.toFixed(2)}</strong></p>
+                </div>
+                ${tabelaItensHTML}
+            `;
             containerFechamentos.appendChild(card);
         });
     }
+
+    salvarDadosNoAparelho();
 }
 
 // ADICIONAR GASTO
-formGasto.addEventListener('submit', async(e) => {
+formGasto.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const data = document.getElementById('data').value;
@@ -164,68 +144,67 @@ formGasto.addEventListener('submit', async(e) => {
 
     if (!data || !descricao || isNaN(valor)) return;
 
-    const res = await requisitarAPI({ action: 'adicionarGasto', data, descricao, valor });
-    if (res && res.status === 'sucesso') {
-        formGasto.reset();
-        statusMsg.textContent = 'Lançamento salvo!';
-        setTimeout(() => statusMsg.textContent = '', 3000);
-        carregarDadosServidor();
-    }
+    dadosApp.gastos.push({ data, descricao, valor });
+    atualizarInterface();
+
+    formGasto.reset();
+    statusMsg.textContent = 'Gasto lançado com sucesso!';
+    setTimeout(() => statusMsg.textContent = '', 3000);
 });
 
-// REMOVER GASTO INDIVIDUAL
-window.removerGasto = async function(id) {
-    const res = await requisitarAPI({ action: 'removerGasto', id });
-    if (res && res.status === 'sucesso') {
-        carregarDadosServidor();
-    }
-};
-
-// REMOVER FECHAMENTO COMPLETO
-window.removerFechamento = async function(id) {
-    if (confirm('Deseja excluir este relatório de fechamento?')) {
-        const res = await requisitarAPI({ action: 'removerFechamento', id });
-        if (res && res.status === 'sucesso') {
-            carregarDadosServidor();
-        }
-    }
+// REMOVER GASTO
+window.removerGasto = function(index) {
+    dadosApp.gastos.splice(index, 1);
+    atualizarInterface();
 };
 
 // FECHAR MÊS
-btnFecharMes.addEventListener('click', async() => {
+btnFecharMes.addEventListener('click', () => {
     if (dadosApp.gastos.length === 0) {
-        alert('Não há gastos registrados para realizar o fechamento.');
+        alert('Não há lançamentos para fechar o mês.');
         return;
     }
 
-    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + Number(curr.valor), 0);
-    const saldoRestante = dadosApp.saldoInicial - totalGasto;
+    const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
 
-    const res = await requisitarAPI({
-        action: 'fecharMes',
+    dadosApp.fechamentos.push({
+        dataFechamento: dataHoje,
         saldoInicial: dadosApp.saldoInicial,
         totalGasto: totalGasto,
-        saldoRestante: saldoRestante
+        saldoRestante: dadosApp.saldoInicial - totalGasto,
+        itens: [...dadosApp.gastos]
     });
 
-    if (res && res.status === 'sucesso') {
-        alert('Mês fechado com sucesso!');
-        carregarDadosServidor();
-    }
+    // Limpa gastos atuais
+    dadosApp.gastos = [];
+    atualizarInterface();
+    alert('Mês fechado e salvo no histórico!');
 });
 
-// NAVEGAÇÃO E INICIALIZAÇÃO
+// EVENTOS DE NAVEGAÇÃO E SESSÃO
 btnIniciar.addEventListener('click', () => {
     telaInicio.classList.add('hidden');
     painelPrincipal.classList.remove('hidden');
-    carregarDadosServidor();
+    carregarDadosSalvos();
+});
+
+btnSalvarSessao.addEventListener('click', () => {
+    salvarDadosNoAparelho();
+    alert('Dados salvos com sucesso neste celular!');
 });
 
 btnSair.addEventListener('click', () => {
+    if (confirm('Deseja salvar suas alterações antes de sair?')) {
+        salvarDadosNoAparelho();
+    }
     painelPrincipal.classList.add('hidden');
     telaInicio.classList.remove('hidden');
 });
 
+inputSaldoInicial.addEventListener('change', atualizarInterface);
+
+// ALTERNAR ABAS
 function trocarAba(abaAtiva, btnAtivo) {
     [telaLancamento, telaResumo, telaRelatorio].forEach(t => t.classList.add('hidden'));
     [btnNavLancamento, btnNavResumo, btnNavRelatorio].forEach(b => b.classList.remove('active'));
