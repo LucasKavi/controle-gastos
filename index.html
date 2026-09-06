@@ -14,8 +14,8 @@
     <meta name="theme-color" content="#1b365d">
 
     <!-- Ícone do App -->
-    <link rel="icon" type="image/png" sizes="512x512" href="icone.png">
-    <link rel="apple-touch-icon" href="icone.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -25,10 +25,10 @@
 
         <!-- TELA INICIAL (BOAS-VINDAS) -->
         <div id="tela-inicio" class="card welcome-card">
-            <img src="icone.png" alt="Logo Controle de Gastos" class="logo-inicio">
+            <img src="icon.png" alt="Logo Controle de Gastos" class="logo-inicio">
             <h1>Controle de Gastos</h1>
             <p class="subtitle">Gerencie suas finanças pessoais de forma simples e segura.</p>
-            <button id="btn-iniciar" class="btn-primary btn-lg">🚀 Iniciar</button>
+            <button id="btn-iniciar" class="btn-primary btn-lg">Iniciar</button>
         </div>
 
         <!-- PAINEL PRINCIPAL (ESCONDIDO ATÉ CLICAR EM INICIAR) -->
@@ -54,10 +54,10 @@
             <section class="card saldo-card">
                 <div class="saldo-header">
                     <label for="saldo-inicial">Saldo Inicial (R$):</label>
-                    <input type="number" id="saldo-inicial" step="0.01" value="0.00">
+                    <input type="number" id="saldo-inicial" step="0,01" value="0,00">
                 </div>
                 <div class="saldo-info">
-                    <p><strong>Total Gasto:</strong> <span class="val-gasto">R$ <span id="display-total-gasto">0.00</span></span>
+                    <p><strong>Total Gasto:</strong> <span class="val-gasto">R$ <span id="display-total-gasto">0,00</span></span>
                     </p>
                     <p><strong>Saldo Restante:</strong> <span class="val-restante">R$ <span id="display-saldo-restante">0.00</span></span>
                     </p>
@@ -74,13 +74,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="descricao">Descrição (somente texto):</label>
-                        <input type="text" id="descricao" placeholder="Ex: Mercado, Uber, Farmácia" required pattern="[^0-9]*" title="Números não são permitidos na descrição">
+                        <label for="descricao">Descrição:</label>
+                        <input type="text" id="descricao" placeholder="Ex: Mercado, Uber, Farmácia" required>
                     </div>
 
                     <div class="form-group">
                         <label for="valor">Valor (R$):</label>
-                        <input type="number" step="0.01" id="valor" placeholder="0.00" required>
+                        <input type="number" step="0.01" id="valor" placeholder="0,00" required>
                     </div>
 
                     <button type="submit" id="btn-salvar" class="btn-primary btn-block">➕ Lançar Gasto</button>
@@ -102,7 +102,6 @@
                             </tr>
                         </thead>
                         <tbody id="tabela-body">
-                            <!-- Linhas inseridas dinamicamente -->
                         </tbody>
                     </table>
                 </div>
@@ -110,14 +109,13 @@
                     <strong>Total Geral de Gastos:</strong> R$ <span id="resumo-total-gastos">0.00</span>
                 </div>
 
-                <button id="btn-fechar-mes" class="btn-warning btn-block">🔒 Fechar Mês Atual</button>
+                <button id="btn-fechar-mes" class="btn-warning btn-block">Fechar Mês Atual</button>
             </section>
 
             <!-- TELA 3: HISTÓRICO DE FECHAMENTOS -->
             <section id="tela-relatorio" class="card tab-content hidden">
                 <h3>Histórico de Fechamentos</h3>
                 <div id="container-fechamentos">
-                    <!-- Fechamentos salvos aparecerão aqui -->
                 </div>
             </section>
 
