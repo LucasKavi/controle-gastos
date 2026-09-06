@@ -38,6 +38,7 @@ const statusMsg = document.getElementById('status-msg');
 // FORMATAR DATA: AAAA-MM-DD -> DD/MM/AAAA
 function formatarDataBR(dataIso) {
     if (!dataIso) return '';
+    if (dataIso.includes('/')) return dataIso; // Já está formatado
     const [ano, mes, dia] = dataIso.split('-');
     return `${dia}/${mes}/${ano}`;
 }
@@ -67,55 +68,31 @@ function atualizarInterface() {
     displaySaldoRestante.textContent = saldoRestante.toFixed(2);
     resumoTotalGastos.textContent = totalGasto.toFixed(2);
 
-    // Renderizar Tabela
+    // Renderizar Tabela de Gastos Atuais
     tabelaBody.innerHTML = '';
     dadosApp.gastos.forEach((gasto, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${formatarDataBR(gasto.data)}</td>
-      <td>${gasto.descricao}</td>
-      <td>R$ ${gasto.valor.toFixed(2)}</td>
-      <td><button class="btn-delete" onclick="removerGasto(${index})">🗑️</button></td>
-    `;
+            <td>${formatarDataBR(gasto.data)}</td>
+            <td>${gasto.descricao}</td>
+            <td>R$ ${gasto.valor.toFixed(2)}</td>
+            <td><button class="btn-delete" onclick="removerGasto(${index})">🗑️</button></td>
+        `;
         tabelaBody.appendChild(tr);
     });
 
-    // ATUALIZAR CÁLCULOS E TELAS
-    function atualizarInterface() {
-        dadosApp.saldoInicial = parseFloat(inputSaldoInicial.value) || 0;
+    // Renderizar Fechamentos
+    containerFechamentos.innerHTML = '';
+    if (dadosApp.fechamentos.length === 0) {
+        containerFechamentos.innerHTML = '<p style="color: #718096; font-size: 0.9rem;">Nenhum fechamento realizado ainda.</p>';
+    } else {
+        dadosApp.fechamentos.forEach((f, idx) => {
+                    const card = document.createElement('div');
+                    card.className = 'card card-fechamento';
 
-        const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
-        const saldoRestante = dadosApp.saldoInicial - totalGasto;
-
-        displayTotalGasto.textContent = totalGasto.toFixed(2);
-        displaySaldoRestante.textContent = saldoRestante.toFixed(2);
-        resumoTotalGastos.textContent = totalGasto.toFixed(2);
-
-        // Renderizar Tabela
-        tabelaBody.innerHTML = '';
-        dadosApp.gastos.forEach((gasto, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-      <td>${formatarDataBR(gasto.data)}</td>
-      <td>${gasto.descricao}</td>
-      <td>R$ ${gasto.valor.toFixed(2)}</td>
-      <td><button class="btn-delete" onclick="removerGasto(${index})">🗑️</button></td>
-    `;
-            tabelaBody.appendChild(tr);
-        });
-
-        // Renderizar Fechamentos
-        containerFechamentos.innerHTML = '';
-        if (dadosApp.fechamentos.length === 0) {
-            containerFechamentos.innerHTML = '<p style="color: #718096; font-size: 0.9rem;">Nenhum fechamento realizado ainda.</p>';
-        } else {
-            dadosApp.fechamentos.forEach((f, idx) => {
-                        const card = document.createElement('div');
-                        card.className = 'card card-fechamento';
-
-                        let tabelaItensHTML = '';
-                        if (f.itens && f.itens.length > 0) {
-                            tabelaItensHTML = `
+                    let tabelaItensHTML = '';
+                    if (f.itens && f.itens.length > 0) {
+                        tabelaItensHTML = `
                     <div class="fechamento-extrato-detalhes">
                         <table class="fechamento-tabela">
                             <thead>
@@ -181,7 +158,6 @@ window.editarItemFechamento = function(fechamentoIdx, itemIdx, campo, novoValor)
     if (!fechamento || !fechamento.itens[itemIdx]) return;
 
     if (campo === 'data') {
-        // Converte de DD/MM/AAAA para AAAA-MM-DD se necessário
         if (novoValor.includes('/')) {
             const [dia, mes, ano] = novoValor.split('/');
             fechamento.itens[itemIdx].data = `${ano}-${mes}-${dia}`;
@@ -195,7 +171,7 @@ window.editarItemFechamento = function(fechamentoIdx, itemIdx, campo, novoValor)
         if (!isNaN(val)) {
             fechamento.itens[itemIdx].valor = val;
             
-            // Recalcula totais do fechamento
+            // Recalcula os totais do fechamento ao alterar o valor do item
             fechamento.totalGasto = fechamento.itens.reduce((acc, curr) => acc + curr.valor, 0);
             fechamento.saldoRestante = fechamento.saldoInicial - fechamento.totalGasto;
         }
@@ -203,25 +179,6 @@ window.editarItemFechamento = function(fechamentoIdx, itemIdx, campo, novoValor)
 
     atualizarInterface();
 };
-
-            card.innerHTML = `
-                <div class="fechamento-header">
-                    <h4>Fechamento #${idx + 1}</h4>
-                    <span>Data: ${f.dataFechamento}</span>
-                </div>
-                <div class="fechamento-resumo">
-                    <p><span>Saldo Inicial:</span> <strong>R$ ${f.saldoInicial.toFixed(2)}</strong></p>
-                    <p><span>Total Gasto:</span> <strong>R$ ${f.totalGasto.toFixed(2)}</strong></p>
-                    <p><span>Saldo Final:</span> <strong>R$ ${f.saldoRestante.toFixed(2)}</strong></p>
-                </div>
-                ${tabelaItensHTML}
-            `;
-            containerFechamentos.appendChild(card);
-        });
-    }
-
-    salvarDadosNoAparelho();
-}
 
 // ADICIONAR GASTO
 formGasto.addEventListener('submit', (e) => {

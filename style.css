@@ -144,6 +144,14 @@ button {
     margin-top: 10px;
 }
 
+.btn-delete {
+    background: transparent;
+    color: var(--danger);
+    font-size: 1rem;
+    padding: 2px 6px;
+    cursor: pointer;
+}
+
 
 /* NAVEGAÇÃO */
 
@@ -228,7 +236,7 @@ button {
 }
 
 
-/* TABELA */
+/* TABELAS PADRÃO */
 
 .table-container {
     overflow-x: auto;
@@ -260,7 +268,7 @@ th {
 }
 
 
-/* ESTILOS EXCLUSIVOS DO FECHAMENTO (EXTRATO AMARELO CLARO) */
+/* ESTILOS EXCLUSIVOS DO CARD DE FECHAMENTO */
 
 .card-fechamento {
     background-color: #fffdeb !important;
@@ -283,9 +291,29 @@ th {
     font-size: 1rem;
 }
 
-.fechamento-header span {
+.fechamento-header-acoes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fechamento-header-acoes span {
     font-size: 0.8rem;
     color: #854d0e;
+}
+
+.btn-delete-fechamento {
+    background: transparent;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.btn-delete-fechamento:hover {
+    background-color: #fef08a;
 }
 
 .fechamento-resumo p {
@@ -295,10 +323,14 @@ th {
     margin-bottom: 4px;
 }
 
+
+/* TABELA DE ITENS NO FECHAMENTO */
+
 .fechamento-extrato-detalhes {
     margin-top: 12px;
     padding-top: 8px;
     border-top: 1px dashed #fde047;
+    overflow-x: auto;
 }
 
 .fechamento-tabela {
@@ -320,41 +352,7 @@ th {
 }
 
 
-/* UTILITÁRIOS */
-
-.hidden {
-    display: none !important;
-}
-
-.btn-delete {
-    background: transparent;
-    color: var(--danger);
-    font-size: 1rem;
-    padding: 2px 6px;
-}
-
-
-/* AÇÕES E EDIÇÃO DO CARD FECHAMENTO */
-
-.fechamento-header-acoes {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-delete-fechamento {
-    background: transparent;
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background 0.2s ease;
-}
-
-.btn-delete-fechamento:hover {
-    background-color: #fef08a;
-}
+/* INPUTS DE EDIÇÃO DENTRO DO FECHAMENTO */
 
 .input-edit-fechamento {
     background: transparent;
@@ -374,5 +372,12 @@ th {
 
 .input-edit-fechamento.val-input {
     text-align: right;
-    width: 80px;
+    width: 75px;
+}
+
+
+/* UTILITÁRIOS */
+
+.hidden {
+    display: none !important;
 }
