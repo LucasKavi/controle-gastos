@@ -29,6 +29,7 @@ const inputDescricao = document.getElementById('descricao');
 const inputValor = document.getElementById('valor');
 const tabelaBody = document.getElementById('tabela-body');
 const resumoTotalGastos = document.getElementById('resumo-total-gastos');
+const containerFechamentos = document.getElementById('container-fechamentos');
 
 const btnFecharMes = document.getElementById('btn-fechar-mes');
 const btnSair = document.getElementById('btn-sair');
@@ -55,7 +56,7 @@ if (inputDescricao) {
     });
 }
 
-// FORMATAÇÃO DE MÁSCARA MONETÁRIA
+// FORMATAÇÃO DE MÁSCARA MONETÁRIA NOS INPUTS
 [inputSaldoInicial, inputValor].forEach(input => {
     if (input) {
         input.addEventListener('blur', (e) => {
@@ -65,7 +66,7 @@ if (inputDescricao) {
     }
 });
 
-// SUBMISSÃO DO FORMULÁRIO DE LOGIN OU CADASTRO
+// LOGIN E CADASTRO
 formAuth.addEventListener('submit', async(e) => {
     e.preventDefault();
     const u = document.getElementById('auth-usuario').value.trim();
@@ -113,7 +114,7 @@ formAuth.addEventListener('submit', async(e) => {
     }
 });
 
-// SOLICITAÇÃO DE RECUPERAÇÃO DE SENHA POR E-MAIL
+// RECUPERAÇÃO DE SENHA POR EMAIL
 btnEsqueciSenha.addEventListener('click', async() => {
     const u = document.getElementById('auth-usuario').value.trim();
     const email = document.getElementById('auth-email').value.trim();
@@ -157,6 +158,9 @@ async function carregarDadosNuvem() {
 
         if (res.status === 'sucesso' && res.dados) {
             dadosApp = res.dados;
+            if (!dadosApp.fechamentos) dadosApp.fechamentos = [];
+            if (!dadosApp.gastos) dadosApp.gastos = [];
+
             inputSaldoInicial.value = parseBRL(dadosApp.saldoInicial).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             atualizarInterface();
         }
@@ -178,7 +182,14 @@ async function salvarNuvem() {
     }
 }
 
-// CHECAGEM DE RETROATIVIDADE/FECHAMENTO PENDENTE
+if (btnSalvarSessao) {
+    btnSalvarSessao.addEventListener('click', async() => {
+        await salvarNuvem();
+        alert('Dados salvos na nuvem com sucesso!');
+    });
+}
+
+// REGRA: SE O MÊS VIRAR, NÃO PODE LANÇAR SEM FECHAR O ANTERIOR
 function precisaFecharMes(dataNovoGastoIso) {
     if (!dadosApp.gastos || dadosApp.gastos.length === 0) return false;
 
@@ -193,7 +204,7 @@ function precisaFecharMes(dataNovoGastoIso) {
     return false;
 }
 
-// LANÇAMENTO DE NOVO GASTO
+// NOVO LANÇAMENTO
 formGasto.addEventListener('submit', (e) => {
     e.preventDefault();
     const data = document.getElementById('data').value;
@@ -218,7 +229,18 @@ btnFecharModal.addEventListener('click', () => {
     modalBloqueio.classList.add('hidden');
 });
 
-// ATUALIZAÇÃO DA TELA
+// EXTRAI APENAS O MÊS E ANO (MM/AAAA)
+function obterMesAno(gastos, dataFechamentoIso) {
+    if (gastos && gastos.length > 0) {
+        const [ano, mes] = gastos[0].data.split('-');
+        return `${mes}/${ano}`;
+    }
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${m}/${d.getFullYear()}`;
+}
+
+// RENDERIZAÇÃO DA INTERFACE E HISTÓRICO
 function atualizarInterface() {
     dadosApp.saldoInicial = parseBRL(inputSaldoInicial.value);
 
@@ -229,6 +251,7 @@ function atualizarInterface() {
     displaySaldoRestante.textContent = formatarBRL(saldoRestante);
     resumoTotalGastos.textContent = formatarBRL(totalGasto);
 
+    // 1. Tabela de Gastos do Mês Atual
     tabelaBody.innerHTML = '';
     dadosApp.gastos.forEach((gasto, index) => {
         const tr = document.createElement('tr');
@@ -241,6 +264,59 @@ function atualizarInterface() {
         `;
         tabelaBody.appendChild(tr);
     });
+
+    // 2. Renderização da Aba Fechamentos (Estilo Extrato)
+    containerFechamentos.innerHTML = '';
+
+    if (!dadosApp.fechamentos || dadosApp.fechamentos.length === 0) {
+        containerFechamentos.innerHTML = '<p style="font-size: 0.9rem; color: #64748b; text-align: center;">Nenhum fechamento realizado ainda.</p>';
+        return;
+    }
+
+    // Exibe os fechamentos do mais recente para o mais antigo
+    [...dadosApp.fechamentos].reverse().forEach((fechamento) => {
+        const mesAnoRef = fechamento.mesReferencia || obterMesAno(fechamento.itens);
+
+        let itensHtml = '';
+        if (fechamento.itens && fechamento.itens.length > 0) {
+            fechamento.itens.forEach(item => {
+                const [a, m, d] = item.data.split('-');
+                itensHtml += `
+                    <tr>
+                        <td>${d}/${m}/${a}</td>
+                        <td>${item.descricao}</td>
+                        <td style="text-align: right;">${formatarBRL(item.valor)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        const extratoCard = document.createElement('div');
+        extratoCard.className = 'card-extrato';
+        extratoCard.innerHTML = `
+            <div class="extrato-header">
+                <h4><span>💳 Extrato de Fechamento</span> <strong>Mês: ${mesAnoRef}</strong></h4>
+            </div>
+            <div class="extrato-resumo-info">
+                <p><span>Saldo Inicial:</span> <strong>${formatarBRL(fechamento.saldoInicial)}</strong></p>
+                <p><span>Total de Gastos:</span> <strong style="color: var(--danger);">${formatarBRL(fechamento.totalGasto)}</strong></p>
+                <p><span>Saldo Restante:</span> <strong style="color: var(--primary);">${formatarBRL(fechamento.saldoRestante)}</strong></p>
+            </div>
+            <table class="extrato-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descrição</th>
+                        <th style="text-align: right;">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itensHtml}
+                </tbody>
+            </table>
+        `;
+        containerFechamentos.appendChild(extratoCard);
+    });
 }
 
 window.removerGasto = function(idx) {
@@ -249,14 +325,18 @@ window.removerGasto = function(idx) {
     salvarNuvem();
 };
 
+// AÇÃO DE FECHAR O MÊS ATUAL
 btnFecharMes.addEventListener('click', () => {
-    if (dadosApp.gastos.length === 0) return alert('Sem gastos para fechar.');
+    if (dadosApp.gastos.length === 0) return alert('Sem gastos para fechar no mês atual.');
 
     const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
+    const mesAnoRef = obterMesAno(dadosApp.gastos);
+
     dadosApp.fechamentos.push({
+        mesReferencia: mesAnoRef,
         dataFechamento: new Date().toLocaleDateString('pt-BR'),
         saldoInicial: dadosApp.saldoInicial,
-        totalGasto,
+        totalGasto: totalGasto,
         saldoRestante: dadosApp.saldoInicial - totalGasto,
         itens: [...dadosApp.gastos]
     });
@@ -264,7 +344,7 @@ btnFecharMes.addEventListener('click', () => {
     dadosApp.gastos = [];
     atualizarInterface();
     salvarNuvem();
-    alert('Mês fechado com sucesso!');
+    alert(`Mês ${mesAnoRef} fechado com sucesso! Os lançamentos foram movidos para o histórico.`);
 });
 
 btnSair.addEventListener('click', () => {
