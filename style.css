@@ -42,7 +42,7 @@ body {
 }
 
 
-/* BOTÕES 3D PROFISSIONAIS */
+/* BOTÕES 3D */
 
 .btn-3d {
     border: none;
@@ -121,7 +121,7 @@ body {
 }
 
 
-/* TELA INICIAL / LOGIN */
+/* TELA DE AUTENTICAÇÃO */
 
 .welcome-card {
     text-align: center;
@@ -150,7 +150,7 @@ body {
 }
 
 
-/* NAVEGAÇÃO ABAS */
+/* NAVEGAÇÃO DE ABAS */
 
 .nav-buttons {
     display: flex;
@@ -176,7 +176,7 @@ body {
 }
 
 
-/* SALDO CARD */
+/* CARD SALDO */
 
 .saldo-card {
     background: linear-gradient(135deg, #1b365d, #2d5284);
@@ -206,7 +206,7 @@ body {
 }
 
 
-/* FORMULÁRIO */
+/* CAMPOS DE FORMULÁRIO */
 
 .form-group {
     margin-bottom: 14px;
@@ -235,7 +235,7 @@ body {
 }
 
 
-/* TABELAS */
+/* TABELAS DE DADOS */
 
 .table-container {
     overflow-x: auto;
@@ -256,7 +256,7 @@ td {
 }
 
 
-/* MODAL DE BLOQUEIO */
+/* MODAIS */
 
 .modal-overlay {
     position: fixed;

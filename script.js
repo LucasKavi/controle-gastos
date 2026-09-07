@@ -9,7 +9,7 @@ let dadosApp = {
     fechamentos: []
 };
 
-// REGEX SENHA FORTE: 8 a 16 chars, 1 num, 1 especial
+// REGEX SENHA FORTE: 8 a 16 caracteres, 1 número, 1 caractere especial
 const regexSenhaForte = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
 
 // ELEMENTOS DOM
@@ -37,7 +37,7 @@ const btnSalvarSessao = document.getElementById('btn-salvar-sessao');
 const modalBloqueio = document.getElementById('modal-bloqueio');
 const btnFecharModal = document.getElementById('btn-fechar-modal');
 
-// FORMATADORES BRL
+// FORMATADORES
 function formatarBRL(valor) {
     return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -48,14 +48,14 @@ function parseBRL(texto) {
     return parseFloat(limpo) || 0;
 }
 
-// RESTRIÇÃO: NÃO PERMITIR NÚMEROS NO CAMPO DESCRIÇÃO
+// RESTRIÇÃO: REMOVER NÚMEROS DO CAMPO DESCRIÇÃO
 if (inputDescricao) {
     inputDescricao.addEventListener('input', (e) => {
         e.target.value = e.target.value.replace(/[0-9]/g, '');
     });
 }
 
-// FORMATAR MÁSCARA MONETÁRIA NOS INPUTS
+// FORMATAÇÃO DE MÁSCARA MONETÁRIA
 [inputSaldoInicial, inputValor].forEach(input => {
     if (input) {
         input.addEventListener('blur', (e) => {
@@ -65,7 +65,7 @@ if (inputDescricao) {
     }
 });
 
-// LOGIN E CADASTRO
+// SUBMISSÃO DO FORMULÁRIO DE LOGIN OU CADASTRO
 formAuth.addEventListener('submit', async(e) => {
     e.preventDefault();
     const u = document.getElementById('auth-usuario').value.trim();
@@ -113,19 +113,19 @@ formAuth.addEventListener('submit', async(e) => {
     }
 });
 
-// RECUPERAÇÃO DE SENHA POR EMAIL
+// SOLICITAÇÃO DE RECUPERAÇÃO DE SENHA POR E-MAIL
 btnEsqueciSenha.addEventListener('click', async() => {
     const u = document.getElementById('auth-usuario').value.trim();
     const email = document.getElementById('auth-email').value.trim();
 
     if (!u || !email) {
         authStatusMsg.style.color = 'var(--danger)';
-        authStatusMsg.textContent = 'Preencha os campos Usuário e E-mail para solicitar a redefinição.';
+        authStatusMsg.textContent = 'Preencha Usuário e E-mail para redefinir a senha.';
         return;
     }
 
     authStatusMsg.style.color = 'var(--primary)';
-    authStatusMsg.textContent = 'Solicitando redefinição de senha...';
+    authStatusMsg.textContent = 'Solicitando redefinição...';
 
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
@@ -142,7 +142,7 @@ btnEsqueciSenha.addEventListener('click', async() => {
         authStatusMsg.textContent = res.mensagem;
     } catch (e) {
         authStatusMsg.style.color = 'var(--danger)';
-        authStatusMsg.textContent = 'Erro ao conectar ao servidor.';
+        authStatusMsg.textContent = 'Erro ao conectar com o servidor.';
     }
 });
 
@@ -178,7 +178,7 @@ async function salvarNuvem() {
     }
 }
 
-// VALIDAÇÃO DE MÊS BLOQUEADO
+// CHECAGEM DE RETROATIVIDADE/FECHAMENTO PENDENTE
 function precisaFecharMes(dataNovoGastoIso) {
     if (!dadosApp.gastos || dadosApp.gastos.length === 0) return false;
 
@@ -193,7 +193,7 @@ function precisaFecharMes(dataNovoGastoIso) {
     return false;
 }
 
-// ADICIONAR GASTO
+// LANÇAMENTO DE NOVO GASTO
 formGasto.addEventListener('submit', (e) => {
     e.preventDefault();
     const data = document.getElementById('data').value;
@@ -218,7 +218,7 @@ btnFecharModal.addEventListener('click', () => {
     modalBloqueio.classList.add('hidden');
 });
 
-// RENDERIZAÇÃO INTERFACE
+// ATUALIZAÇÃO DA TELA
 function atualizarInterface() {
     dadosApp.saldoInicial = parseBRL(inputSaldoInicial.value);
 
@@ -275,7 +275,7 @@ btnSair.addEventListener('click', () => {
     formAuth.reset();
 });
 
-// NAVEGAÇÃO DE ABAS
+// TROCA DE ABAS
 const abas = {
     'btn-nav-lancamento': document.getElementById('tela-lancamento'),
     'btn-nav-resumo': document.getElementById('tela-resumo'),
