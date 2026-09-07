@@ -9,11 +9,15 @@ let dadosApp = {
     fechamentos: []
 };
 
+// REGEX SENHA FORTE: 8 a 16 chars, 1 num, 1 especial
+const regexSenhaForte = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
+
 // ELEMENTOS DOM
 const telaInicio = document.getElementById('tela-inicio');
 const painelPrincipal = document.getElementById('painel-principal');
 const formAuth = document.getElementById('form-auth');
 const authStatusMsg = document.getElementById('auth-status-msg');
+const btnEsqueciSenha = document.getElementById('btn-esqueci-senha');
 
 const saudacaoUsuario = document.getElementById('saudacao-usuario');
 const inputSaldoInicial = document.getElementById('saldo-inicial');
@@ -61,18 +65,32 @@ if (inputDescricao) {
     }
 });
 
-// LOGIN / CADASTRO
+// LOGIN E CADASTRO
 formAuth.addEventListener('submit', async(e) => {
     e.preventDefault();
     const u = document.getElementById('auth-usuario').value.trim();
+    const email = document.getElementById('auth-email').value.trim();
     const s = document.getElementById('auth-senha').value.trim();
 
-    authStatusMsg.textContent = 'Autenticando...';
+    authStatusMsg.style.color = 'var(--danger)';
+
+    if (u.length < 3) {
+        authStatusMsg.textContent = 'O usuário deve ter pelo menos 3 caracteres.';
+        return;
+    }
+
+    if (!regexSenhaForte.test(s)) {
+        authStatusMsg.textContent = 'A senha deve ter entre 8 e 16 caracteres, contendo pelo menos 1 número e 1 caractere especial (!@#$...).';
+        return;
+    }
+
+    authStatusMsg.style.color = 'var(--primary)';
+    authStatusMsg.textContent = 'Verificando credenciais...';
 
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'autenticarOuCadastrar', usuario: u, senha: s })
+            body: JSON.stringify({ action: 'autenticarOuCadastrar', usuario: u, email, senha: s })
         });
         const res = await resp.json();
 
@@ -86,10 +104,45 @@ formAuth.addEventListener('submit', async(e) => {
 
             await carregarDadosNuvem();
         } else {
+            authStatusMsg.style.color = 'var(--danger)';
             authStatusMsg.textContent = res.mensagem;
         }
     } catch (err) {
+        authStatusMsg.style.color = 'var(--danger)';
         authStatusMsg.textContent = 'Erro de conexão com o servidor.';
+    }
+});
+
+// RECUPERAÇÃO DE SENHA POR EMAIL
+btnEsqueciSenha.addEventListener('click', async() => {
+    const u = document.getElementById('auth-usuario').value.trim();
+    const email = document.getElementById('auth-email').value.trim();
+
+    if (!u || !email) {
+        authStatusMsg.style.color = 'var(--danger)';
+        authStatusMsg.textContent = 'Preencha os campos Usuário e E-mail para solicitar a redefinição.';
+        return;
+    }
+
+    authStatusMsg.style.color = 'var(--primary)';
+    authStatusMsg.textContent = 'Solicitando redefinição de senha...';
+
+    try {
+        const resp = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'recuperarSenha', usuario: u, email })
+        });
+        const res = await resp.json();
+
+        if (res.status === 'sucesso') {
+            authStatusMsg.style.color = 'var(--success)';
+        } else {
+            authStatusMsg.style.color = 'var(--danger)';
+        }
+        authStatusMsg.textContent = res.mensagem;
+    } catch (e) {
+        authStatusMsg.style.color = 'var(--danger)';
+        authStatusMsg.textContent = 'Erro ao conectar ao servidor.';
     }
 });
 

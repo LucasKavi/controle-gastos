@@ -33,11 +33,18 @@
                     <input type="text" id="auth-usuario" placeholder="Digite seu usuário..." required autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="auth-senha">Senha:</label>
-                    <input type="password" id="auth-senha" placeholder="Digite sua senha..." required>
+                    <label for="auth-email">E-mail (obrigatório para novos cadastros):</label>
+                    <input type="email" id="auth-email" placeholder="seuemail@exemplo.com" autocomplete="off">
                 </div>
-                <button type="submit" id="btn-iniciar" class="btn-primary btn-3d btn-block">Acessar Painel</button>
+                <div class="form-group">
+                    <label for="auth-senha">Senha:</label>
+                    <input type="password" id="auth-senha" placeholder="8-16 chars, 1 num, 1 especial" required>
+                </div>
+
+                <button type="submit" id="btn-iniciar" class="btn-primary btn-3d btn-block">Acessar / Cadastrar</button>
             </form>
+
+            <button id="btn-esqueci-senha" class="btn-link">Esqueci minha senha</button>
             <div id="auth-status-msg" class="status-msg-auth"></div>
         </div>
 
