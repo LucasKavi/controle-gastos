@@ -2,21 +2,24 @@
     --primary: #1b365d;
     --primary-hover: #132744;
     --secondary: #4a5568;
+    --secondary-hover: #2d3748;
     --success: #28a745;
     --danger: #dc3545;
+    --danger-hover: #bd2130;
     --warning: #d97706;
     --bg-color: #f0f4f8;
     --card-bg: #ffffff;
     --text-color: #2d3748;
     --border-radius: 12px;
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --focus-ring: 0 0 0 3px rgba(27, 54, 93, 0.25);
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
@@ -26,6 +29,7 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 16px;
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
@@ -99,7 +103,16 @@ button {
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
 }
 
 .btn-primary {
@@ -116,9 +129,17 @@ button {
     color: #fff;
 }
 
+.btn-secondary:hover {
+    background-color: var(--secondary-hover);
+}
+
 .btn-danger {
     background-color: var(--danger);
     color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-hover);
 }
 
 .btn-warning {
@@ -148,8 +169,13 @@ button {
     background: transparent;
     color: var(--danger);
     font-size: 1rem;
-    padding: 2px 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
     cursor: pointer;
+}
+
+.btn-delete:hover {
+    background-color: rgba(220, 53, 69, 0.1);
 }
 
 
@@ -167,6 +193,10 @@ button {
     font-size: 0.8rem;
     background: #e2e8f0;
     color: var(--secondary);
+}
+
+.btn-nav:hover {
+    background: #cbd5e1;
 }
 
 .btn-nav.active {
@@ -191,12 +221,19 @@ button {
 
 .saldo-header input {
     width: 110px;
-    padding: 6px;
+    padding: 6px 8px;
     border-radius: 6px;
-    border: none;
+    border: 1px solid transparent;
     text-align: right;
     font-size: 1rem;
     font-weight: bold;
+    color: var(--text-color);
+}
+
+.saldo-header input:focus {
+    outline: none;
+    border-color: #cbd5e1;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 .saldo-info p {
@@ -226,6 +263,13 @@ button {
     border: 1px solid #cbd5e1;
     border-radius: 8px;
     font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: var(--focus-ring);
 }
 
 .status-msg {
@@ -233,6 +277,7 @@ button {
     font-size: 0.85rem;
     text-align: center;
     color: var(--success);
+    font-weight: 500;
 }
 
 
@@ -254,6 +299,7 @@ td {
     padding: 10px 6px;
     text-align: left;
     border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
 }
 
 th {
@@ -349,6 +395,7 @@ th {
     padding: 6px 4px;
     border-bottom: 1px solid #fef08a;
     color: #422006;
+    vertical-align: middle;
 }
 
 
@@ -358,21 +405,24 @@ th {
     background: transparent;
     border: 1px dashed #ca8a04;
     border-radius: 4px;
-    padding: 2px 4px;
+    padding: 3px 6px;
     font-size: 0.8rem;
     color: #422006;
     width: 100%;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .input-edit-fechamento:focus {
     background: #ffffff;
     outline: none;
-    border-style: solid;
+    border: 1px solid #ca8a04;
+    box-shadow: 0 0 0 2px rgba(202, 138, 4, 0.2);
 }
 
 .input-edit-fechamento.val-input {
     text-align: right;
-    width: 75px;
+    min-width: 65px;
+    max-width: 90px;
 }
 
 

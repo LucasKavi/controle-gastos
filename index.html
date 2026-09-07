@@ -3,9 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Painel Financeiro</title>
+
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Configurações PWA e Ícones -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="theme-color" content="#1b365d">
+
+    <!-- Suporte ao iOS / Safari para modo tela cheia -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Financeiro">
 </head>
 
 <body>
@@ -14,67 +27,67 @@
 
         <!-- TELA DE INÍCIO -->
         <div id="tela-inicio" class="card welcome-card">
-            <img src="logo.png" alt="Logo" class="logo-inicio">
+            <img src="logo.png" alt="Logo Painel Financeiro" class="logo-inicio">
             <h1>Controle Financeiro</h1>
             <p class="subtitle">Gerencie seus gastos e fechamentos de forma simples</p>
             <button id="btn-iniciar" class="btn-primary btn-lg">Iniciar Painel</button>
         </div>
 
-        <!-- PAINEL PRINCIPAL (Oculto inicialmente) -->
+        <!-- PAINEL PRINCIPAL -->
         <div id="painel-principal" class="hidden">
 
             <!-- HEADER & SESSÃO -->
             <header class="app-header">
                 <h2>PAINEL FINANCEIRO</h2>
                 <div class="session-actions">
-                    <button id="btn-salvar-sessao" class="btn-secondary btn-sm">💾 Salvar</button>
-                    <button id="btn-sair" class="btn-danger btn-sm">🚪 Sair</button>
+                    <button id="btn-salvar-sessao" class="btn-secondary btn-sm" title="Salvar dados localmente">💾 Salvar</button>
+                    <button id="btn-sair" class="btn-danger btn-sm" title="Sair do painel">🚪 Sair</button>
                 </div>
             </header>
 
             <!-- NAVEGAÇÃO / ABAS -->
-            <nav class="nav-buttons">
+            <nav class="nav-buttons" aria-label="Navegação do painel">
                 <button id="btn-nav-lancamento" class="btn-nav active">+ Novo Lançamento</button>
                 <button id="btn-nav-resumo" class="btn-nav">📊 Resumo de Gastos</button>
                 <button id="btn-nav-relatorio" class="btn-nav">📑 Fechamentos</button>
             </nav>
 
             <!-- CARD DE SALDO INICIAL E RESUMO RÁPIDO -->
-            <div class="card saldo-card">
+            <section class="card saldo-card">
                 <div class="saldo-header">
                     <label for="saldo-inicial">Saldo Inicial (R$):</label>
-                    <input type="number" id="saldo-inicial" step="0.01" value="0.00">
+                    <input type="number" id="saldo-inicial" step="0.01" value="0.00" inputmode="decimal">
                 </div>
                 <div class="saldo-info">
                     <p><span>Total Gasto:</span> <strong>R$ <span id="display-total-gasto">0.00</span></strong></p>
                     <p><span>Saldo Restante:</span> <strong>R$ <span id="display-saldo-restante">0.00</span></strong></p>
                 </div>
-            </div>
+            </section>
 
             <!-- ABA 1: NOVO LANÇAMENTO DE GASTO -->
             <main id="tela-lancamento">
                 <div class="card">
                     <h3>Lançar Novo Gasto</h3>
-                    <form id="form-gasto">
+                    <form id="form-gasto" autocomplete="off">
                         <div class="form-group">
                             <label for="data">Data:</label>
                             <input type="date" id="data" required>
                         </div>
                         <div class="form-group">
                             <label for="descricao">Descrição:</label>
-                            <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível..." required>
+                            <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível..." required autocomplete="off" autocorrect="off">
                         </div>
                         <div class="form-group">
                             <label for="valor">Valor (R$):</label>
-                            <input type="number" id="valor" step="0.01" placeholder="0.00" required>
+                            <input type="number" id="valor" step="0.01" placeholder="0.00" required inputmode="decimal">
                         </div>
                         <button type="submit" class="btn-primary btn-block">Adicionar Gasto</button>
                     </form>
-                    <div id="status-msg" class="status-msg"></div>
+                    <div id="status-msg" class="status-msg" aria-live="polite"></div>
                 </div>
             </main>
 
-            <!-- ABA 2: RESUMO E TABELA DE GASTOS DO MÊS ATUAL -->
+            <!-- ABA 2: RESUMO E TABELA DE GASTOS -->
             <section id="tela-resumo" class="hidden">
                 <div class="card">
                     <h3>Lançamentos do Mês</h3>
@@ -106,7 +119,7 @@
             <section id="tela-relatorio" class="hidden">
                 <h3 style="margin-bottom: 12px; font-size: 1.1rem;">Histórico de Fechamentos</h3>
                 <div id="container-fechamentos">
-                    <!-- Cards amarelados de fechamento entram aqui via JS -->
+                    <!-- Cards de fechamento entram aqui via JS -->
                 </div>
             </section>
 
@@ -114,7 +127,19 @@
 
     </div>
 
+    <!-- Scripts JavaScript (Certifique-se que o nome do arquivo corresponde ao seu projeto) -->
     <script src="script.js"></script>
+
+    <!-- Registro do Service Worker para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker do PWA registrado com sucesso!'))
+                    .catch(err => console.info('Service Worker não encontrado ou não configurado (sw.js).'));
+            });
+        }
+    </script>
 </body>
 
 </html>
