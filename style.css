@@ -64,10 +64,16 @@ body {
 
 .extrato-header h4 {
     color: #854d0e;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.extrato-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .extrato-resumo-info {
@@ -101,6 +107,23 @@ body {
 .extrato-table td {
     border-bottom: 1px dashed #fde047;
     padding: 6px 4px;
+}
+
+
+/* BOTÃO DE LIXEIRA PEQUENO */
+
+.btn-icon-trash {
+    background: transparent;
+    border: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.btn-icon-trash:hover {
+    background: rgba(220, 53, 69, 0.15);
 }
 
 

@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbByTK7gyDwnwYx2PvVfEYWQp9eD7MWP0S6EX1Tq9v7uI2EZnBHn8mVYrskpWnV8XaPg/exec';
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbByTK7gyDwnwYx2PvVfEYWQp9eD7MWP0S6EX1Tq9v7uI2EZnBHn8mVYrskpWnV8XaPg/exec";
 
 let usuarioAtual = null;
 let senhaAtual = null;
@@ -230,7 +230,7 @@ btnFecharModal.addEventListener('click', () => {
 });
 
 // EXTRAI APENAS O MÊS E ANO (MM/AAAA)
-function obterMesAno(gastos, dataFechamentoIso) {
+function obterMesAno(gastos) {
     if (gastos && gastos.length > 0) {
         const [ano, mes] = gastos[0].data.split('-');
         return `${mes}/${ano}`;
@@ -273,29 +273,40 @@ function atualizarInterface() {
         return;
     }
 
-    // Exibe os fechamentos do mais recente para o mais antigo
-    [...dadosApp.fechamentos].reverse().forEach((fechamento) => {
+    // Exibe os fechamentos
+    dadosApp.fechamentos.forEach((fechamento, fechamentoIdx) => {
         const mesAnoRef = fechamento.mesReferencia || obterMesAno(fechamento.itens);
 
         let itensHtml = '';
         if (fechamento.itens && fechamento.itens.length > 0) {
-            fechamento.itens.forEach(item => {
+            fechamento.itens.forEach((item, itemIdx) => {
                 const [a, m, d] = item.data.split('-');
                 itensHtml += `
                     <tr>
                         <td>${d}/${m}/${a}</td>
                         <td>${item.descricao}</td>
                         <td style="text-align: right;">${formatarBRL(item.valor)}</td>
+                        <td style="text-align: center; width: 30px;">
+                            <button class="btn-icon-trash" onclick="excluirItemFechamento(${fechamentoIdx}, ${itemIdx})" title="Excluir este item">🗑️</button>
+                        </td>
                     </tr>
                 `;
             });
+        } else {
+            itensHtml = `<tr><td colspan="4" style="text-align: center; color: #a16207;">Nenhum item restante neste fechamento.</td></tr>`;
         }
 
         const extratoCard = document.createElement('div');
         extratoCard.className = 'card-extrato';
         extratoCard.innerHTML = `
             <div class="extrato-header">
-                <h4><span>💳 Extrato de Fechamento</span> <strong>Mês: ${mesAnoRef}</strong></h4>
+                <h4>
+                    <span>💳 Extrato de Fechamento</span>
+                    <div class="extrato-header-actions">
+                        <strong>Mês: ${mesAnoRef}</strong>
+                        <button class="btn-icon-trash" onclick="excluirFechamentoInteiro(${fechamentoIdx})" title="Excluir este fechamento completo">🗑️</button>
+                    </div>
+                </h4>
             </div>
             <div class="extrato-resumo-info">
                 <p><span>Saldo Inicial:</span> <strong>${formatarBRL(fechamento.saldoInicial)}</strong></p>
@@ -308,6 +319,7 @@ function atualizarInterface() {
                         <th>Data</th>
                         <th>Descrição</th>
                         <th style="text-align: right;">Valor</th>
+                        <th style="text-align: center;">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -319,32 +331,70 @@ function atualizarInterface() {
     });
 }
 
+// EXCLUIR GASTO DO MÊS EM ABERTO
 window.removerGasto = function(idx) {
     dadosApp.gastos.splice(idx, 1);
     atualizarInterface();
     salvarNuvem();
 };
 
+// EXCLUIR ITEM ESPECÍFICO DE UM FECHAMENTO HISTÓRICO
+window.excluirItemFechamento = function(fechamentoIdx, itemIdx) {
+    if (!confirm('Deseja realmente excluir este item do fechamento?')) return;
+
+    const fechamento = dadosApp.fechamentos[fechamentoIdx];
+    if (!fechamento || !fechamento.itens) return;
+
+    fechamento.itens.splice(itemIdx, 1);
+
+    // Recalcula o total gasto e saldo restante do fechamento
+    const novoTotalGasto = fechamento.itens.reduce((acc, curr) => acc + curr.valor, 0);
+    fechamento.totalGasto = novoTotalGasto;
+    fechamento.saldoRestante = Number(fechamento.saldoInicial || 0) - novoTotalGasto;
+
+    atualizarInterface();
+    salvarNuvem();
+};
+
+// EXCLUIR CARD COMPLETO DE FECHAMENTO
+window.excluirFechamentoInteiro = function(fechamentoIdx) {
+    if (!confirm('Deseja realmente excluir todo o extrato deste mês fechado?')) return;
+
+    dadosApp.fechamentos.splice(fechamentoIdx, 1);
+    atualizarInterface();
+    salvarNuvem();
+};
+
 // AÇÃO DE FECHAR O MÊS ATUAL
-btnFecharMes.addEventListener('click', () => {
-    if (dadosApp.gastos.length === 0) return alert('Sem gastos para fechar no mês atual.');
+btnFecharMes.addEventListener('click', async() => {
+    if (!dadosApp.gastos || dadosApp.gastos.length === 0) {
+        alert('Sem gastos para fechar no mês atual.');
+        return;
+    }
 
     const totalGasto = dadosApp.gastos.reduce((acc, curr) => acc + curr.valor, 0);
     const mesAnoRef = obterMesAno(dadosApp.gastos);
 
-    dadosApp.fechamentos.push({
+    if (!Array.isArray(dadosApp.fechamentos)) {
+        dadosApp.fechamentos = [];
+    }
+
+    const novoFechamento = {
         mesReferencia: mesAnoRef,
         dataFechamento: new Date().toLocaleDateString('pt-BR'),
-        saldoInicial: dadosApp.saldoInicial,
+        saldoInicial: Number(dadosApp.saldoInicial || 0),
         totalGasto: totalGasto,
-        saldoRestante: dadosApp.saldoInicial - totalGasto,
+        saldoRestante: Number(dadosApp.saldoInicial || 0) - totalGasto,
         itens: [...dadosApp.gastos]
-    });
+    };
 
+    dadosApp.fechamentos.unshift(novoFechamento); // Insere no topo
     dadosApp.gastos = [];
+
     atualizarInterface();
-    salvarNuvem();
-    alert(`Mês ${mesAnoRef} fechado com sucesso! Os lançamentos foram movidos para o histórico.`);
+    await salvarNuvem();
+
+    alert(`Mês ${mesAnoRef} fechado com sucesso! Os lançamentos foram movidos para a aba Fechamentos.`);
 });
 
 btnSair.addEventListener('click', () => {
