@@ -4,67 +4,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Financeiro</title>
+    <title>Painel Financeiro Pro</title>
 
-    <!-- Estilos CSS -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Configurações PWA e Ícones -->
+    <!-- PWA & Favicon (logo.png) -->
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="theme-color" content="#1b365d">
-
-    <!-- Suporte ao iOS / Safari para modo tela cheia -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Financeiro">
 </head>
 
 <body>
 
     <div class="container">
 
-        <!-- TELA DE INÍCIO -->
+        <!-- TELA DE LOGIN / CADASTRO -->
         <div id="tela-inicio" class="card welcome-card">
             <img src="logo.png" alt="Logo Painel Financeiro" class="logo-inicio">
             <h1>Controle Financeiro</h1>
-            <p class="subtitle">Gerencie seus gastos e fechamentos de forma simples</p>
-            <button id="btn-iniciar" class="btn-primary btn-lg">Iniciar Painel</button>
+            <p class="subtitle">Acesse sua conta ou crie um novo usuário</p>
+
+            <form id="form-auth" autocomplete="off">
+                <div class="form-group">
+                    <label for="auth-usuario">Usuário:</label>
+                    <input type="text" id="auth-usuario" placeholder="Digite seu usuário..." required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="auth-senha">Senha:</label>
+                    <input type="password" id="auth-senha" placeholder="Digite sua senha..." required>
+                </div>
+                <button type="submit" id="btn-iniciar" class="btn-primary btn-3d btn-block">Acessar Painel</button>
+            </form>
+            <div id="auth-status-msg" class="status-msg-auth"></div>
         </div>
 
         <!-- PAINEL PRINCIPAL -->
         <div id="painel-principal" class="hidden">
 
-            <!-- HEADER & SESSÃO -->
+            <!-- HEADER -->
             <header class="app-header">
-                <h2>PAINEL FINANCEIRO</h2>
+                <div class="user-greeting">
+                    <span id="saudacao-usuario">Olá, Usuário</span>
+                </div>
                 <div class="session-actions">
-                    <button id="btn-salvar-sessao" class="btn-secondary btn-sm" title="Salvar dados localmente">💾 Salvar</button>
-                    <button id="btn-sair" class="btn-danger btn-sm" title="Sair do painel">🚪 Sair</button>
+                    <button id="btn-salvar-sessao" class="btn-secondary btn-3d btn-sm">💾 Salvar</button>
+                    <button id="btn-sair" class="btn-danger btn-3d btn-sm">🚪 Sair</button>
                 </div>
             </header>
 
-            <!-- NAVEGAÇÃO / ABAS -->
-            <nav class="nav-buttons" aria-label="Navegação do painel">
+            <!-- NAVEGAÇÃO -->
+            <nav class="nav-buttons">
                 <button id="btn-nav-lancamento" class="btn-nav active">+ Novo Lançamento</button>
                 <button id="btn-nav-resumo" class="btn-nav">📊 Resumo de Gastos</button>
                 <button id="btn-nav-relatorio" class="btn-nav">📑 Fechamentos</button>
             </nav>
 
-            <!-- CARD DE SALDO INICIAL E RESUMO RÁPIDO -->
+            <!-- CARD DE SALDO INICIAL -->
             <section class="card saldo-card">
                 <div class="saldo-header">
                     <label for="saldo-inicial">Saldo Inicial (R$):</label>
-                    <input type="number" id="saldo-inicial" step="0.01" value="0.00" inputmode="decimal">
+                    <input type="text" id="saldo-inicial" placeholder="0,00" inputmode="decimal">
                 </div>
                 <div class="saldo-info">
-                    <p><span>Total Gasto:</span> <strong>R$ <span id="display-total-gasto">0.00</span></strong></p>
-                    <p><span>Saldo Restante:</span> <strong>R$ <span id="display-saldo-restante">0.00</span></strong></p>
+                    <p><span>Total Gasto:</span> <strong id="display-total-gasto">R$ 0,00</strong></p>
+                    <p><span>Saldo Restante:</span> <strong id="display-saldo-restante">R$ 0,00</strong></p>
                 </div>
             </section>
 
-            <!-- ABA 1: NOVO LANÇAMENTO DE GASTO -->
+            <!-- ABA 1: NOVO LANÇAMENTO -->
             <main id="tela-lancamento">
                 <div class="card">
                     <h3>Lançar Novo Gasto</h3>
@@ -74,20 +84,20 @@
                             <input type="date" id="data" required>
                         </div>
                         <div class="form-group">
-                            <label for="descricao">Descrição:</label>
-                            <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível..." required autocomplete="off" autocorrect="off">
+                            <label for="descricao">Descrição (sem números):</label>
+                            <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível..." required autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="valor">Valor (R$):</label>
-                            <input type="number" id="valor" step="0.01" placeholder="0.00" required inputmode="decimal">
+                            <input type="text" id="valor" placeholder="0,00" required inputmode="decimal">
                         </div>
-                        <button type="submit" class="btn-primary btn-block">Adicionar Gasto</button>
+                        <button type="submit" class="btn-primary btn-3d btn-block">Adicionar Gasto</button>
                     </form>
-                    <div id="status-msg" class="status-msg" aria-live="polite"></div>
+                    <div id="status-msg" class="status-msg"></div>
                 </div>
             </main>
 
-            <!-- ABA 2: RESUMO E TABELA DE GASTOS -->
+            <!-- ABA 2: RESUMO DE GASTOS -->
             <section id="tela-resumo" class="hidden">
                 <div class="card">
                     <h3>Lançamentos do Mês</h3>
@@ -101,45 +111,39 @@
                                     <th>Ação</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabela-body">
-                                <!-- Preenchido dinamicamente pelo JS -->
-                            </tbody>
+                            <tbody id="tabela-body"></tbody>
                         </table>
                     </div>
 
                     <div class="total-box">
-                        <strong>Total do Mês: R$ <span id="resumo-total-gastos">0.00</span></strong>
+                        <strong>Total do Mês: <span id="resumo-total-gastos">R$ 0,00</span></strong>
                     </div>
 
-                    <button id="btn-fechar-mes" class="btn-warning btn-block">🔒 Fechar Mês Atual</button>
+                    <button id="btn-fechar-mes" class="btn-warning btn-3d btn-block">🔒 Fechar Mês Atual</button>
                 </div>
             </section>
 
             <!-- ABA 3: HISTÓRICO DE FECHAMENTOS -->
             <section id="tela-relatorio" class="hidden">
-                <h3 style="margin-bottom: 12px; font-size: 1.1rem;">Histórico de Fechamentos</h3>
-                <div id="container-fechamentos">
-                    <!-- Cards de fechamento entram aqui via JS -->
-                </div>
+                <h3 style="margin-bottom: 12px;">Histórico de Fechamentos</h3>
+                <div id="container-fechamentos"></div>
             </section>
 
         </div>
 
     </div>
 
-    <!-- Scripts JavaScript (Certifique-se que o nome do arquivo corresponde ao seu projeto) -->
-    <script src="script.js"></script>
+    <!-- MODAL DE BLOQUEIO DE MÊS -->
+    <div id="modal-bloqueio" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-icon">⚠️</div>
+            <h3>Atenção</h3>
+            <p>Feche o Mês para incluir novos valores.</p>
+            <button id="btn-fechar-modal" class="btn-primary btn-3d btn-block">Entendido</button>
+        </div>
+    </div>
 
-    <!-- Registro do Service Worker para PWA -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker do PWA registrado com sucesso!'))
-                    .catch(err => console.info('Service Worker não encontrado ou não configurado (sw.js).'));
-            });
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 
 </html>
