@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxbByTK7gyDwnwYx2PvVfEYWQp9eD7MWP0S6EX1Tq9v7uI2EZnBHn8mVYrskpWnV8XaPg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-VhAJvAVKBdIWrdM4T39CEU1RdnksKzI_ujd_jXPcN8Yt8t_3nWqZh8VbMTxMyqoi5w/exec";
 
 let usuarioAtual = null;
 let senhaAtual = null;
@@ -38,6 +38,11 @@ const btnSalvarSessao = document.getElementById('btn-salvar-sessao');
 const modalBloqueio = document.getElementById('modal-bloqueio');
 const btnFecharModal = document.getElementById('btn-fechar-modal');
 
+// ELEMENTOS MODAL BIOMETRIA
+const modalBiometria = document.getElementById('modal-biometria');
+const btnAtivarBiometria = document.getElementById('btn-ativar-biometria');
+const btnRecusarBiometria = document.getElementById('btn-recusar-biometria');
+
 // FORMATADORES
 function formatarBRL(valor) {
     return Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -65,6 +70,24 @@ if (inputDescricao) {
         });
     }
 });
+
+// FUNÇÃO AUXILIAR DE ENTAR NO PAINEL PRINCIPAL
+async function efetuarLoginSucesso(u, s) {
+    usuarioAtual = u;
+    senhaAtual = s;
+    saudacaoUsuario.textContent = `Olá, ${u.charAt(0).toUpperCase() + u.slice(1)}`;
+
+    telaInicio.classList.add('hidden');
+    painelPrincipal.classList.remove('hidden');
+
+    await carregarDadosNuvem();
+
+    // POP-UP DE BIOMETRIA: PERGUNTA SOMENTE UMA VEZ CASO NÃO TENHA SIDO CONFIGURADA
+    const bioConfig = localStorage.getItem('biometria_configurada');
+    if (!bioConfig && window.PublicKeyCredential) {
+        modalBiometria.classList.remove('hidden');
+    }
+}
 
 // LOGIN E CADASTRO
 formAuth.addEventListener('submit', async(e) => {
@@ -96,14 +119,7 @@ formAuth.addEventListener('submit', async(e) => {
         const res = await resp.json();
 
         if (res.status === 'sucesso') {
-            usuarioAtual = u;
-            senhaAtual = s;
-            saudacaoUsuario.textContent = `Olá, ${u.charAt(0).toUpperCase() + u.slice(1)}`;
-
-            telaInicio.classList.add('hidden');
-            painelPrincipal.classList.remove('hidden');
-
-            await carregarDadosNuvem();
+            await efetuarLoginSucesso(u, s);
         } else {
             authStatusMsg.style.color = 'var(--danger)';
             authStatusMsg.textContent = res.mensagem;
@@ -114,7 +130,36 @@ formAuth.addEventListener('submit', async(e) => {
     }
 });
 
-// RECUPERAÇÃO DE SENHA POR EMAIL
+// EVENTOS DO POP-UP DE BIOMETRIA
+btnAtivarBiometria.addEventListener('click', () => {
+    localStorage.setItem('biometria_configurada', 'true');
+    localStorage.setItem('bio_u', usuarioAtual);
+    localStorage.setItem('bio_s', senhaAtual);
+    modalBiometria.classList.add('hidden');
+    alert('Biometria cadastrada com sucesso para este dispositivo!');
+});
+
+btnRecusarBiometria.addEventListener('click', () => {
+    localStorage.setItem('biometria_configurada', 'recusado');
+    modalBiometria.classList.add('hidden');
+});
+
+// AUTOLOGIN/PROMPT DE BIOMETRIA AO ABRIR O APP (SE JÁ CADASTROU)
+window.addEventListener('DOMContentLoaded', () => {
+    const isBio = localStorage.getItem('biometria_configurada');
+    const u = localStorage.getItem('bio_u');
+    const s = localStorage.getItem('bio_s');
+
+    if (isBio === 'true' && u && s) {
+        setTimeout(() => {
+            if (confirm(`Deseja entrar como "${u}" usando Biometria / Digital?`)) {
+                efetuarLoginSucesso(u, s);
+            }
+        }, 400);
+    }
+});
+
+// RECUPERAÇÃO DE SENHA POR EMAIL COM LINK DE RETORNO
 btnEsqueciSenha.addEventListener('click', async() => {
     const u = document.getElementById('auth-usuario').value.trim();
     const email = document.getElementById('auth-email').value.trim();
@@ -131,7 +176,12 @@ btnEsqueciSenha.addEventListener('click', async() => {
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'recuperarSenha', usuario: u, email })
+            body: JSON.stringify({
+                action: 'recuperarSenha',
+                usuario: u,
+                email: email,
+                origin: window.location.href.split('#')[0] // Passa a URL atual para o e-mail montar o link de volta
+            })
         });
         const res = await resp.json();
 
