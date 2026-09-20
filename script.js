@@ -69,14 +69,28 @@ let dadosFinanceiros = { saldoInicial: 0, gastos: [], fechamentos: [] };
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // ==========================================
+// FUNÇÕES AUXILIARES DE BUFFER/BASE64 (WEBAUTHN)
+// ==========================================
+function bufferToBase64(buffer) {
+    return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+}
+
+function base64ToBuffer(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+// ==========================================
 // INICIALIZAÇÃO
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    if (isMobile) {
-        const bioAtiva = localStorage.getItem('biometria_configurada');
-        if (bioAtiva === 'true' && btnLoginBiometria) {
-            btnLoginBiometria.classList.remove('hidden');
-        }
+    const bioId = localStorage.getItem('bio_cred_id');
+    if (bioId && btnLoginBiometria) {
+        btnLoginBiometria.classList.remove('hidden');
     }
 });
 
@@ -137,7 +151,7 @@ if (btnFecharModal) {
 }
 
 // ==========================================
-// LOGIN E CADASTRO
+// LOGIN E CADASTRO TRADICIONAL
 // ==========================================
 if (formAuth) {
     formAuth.addEventListener('submit', async(e) => {
@@ -210,20 +224,97 @@ if (formRecuperarSenha) {
     });
 }
 
-// BIOMETRIA
+// ==========================================
+// REGISTRO DE BIOMETRIA (WEBAUTHN)
+// ==========================================
+if (btnAtivarBiometria) {
+    btnAtivarBiometria.addEventListener('click', async() => {
+        if (!window.PublicKeyCredential) {
+            alert('Seu navegador ou dispositivo não suporta autenticação biométrica.');
+            modalBiometria.classList.add('hidden');
+            return;
+        }
+
+        try {
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+            const userId = new TextEncoder().encode(usuarioAtual);
+
+            const credential = await navigator.credentials.create({
+                publicKey: {
+                    challenge: challenge,
+                    rp: { name: "Painel Financeiro" },
+                    user: {
+                        id: userId,
+                        name: usuarioAtual,
+                        displayName: usuarioAtual
+                    },
+                    pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
+                    authenticatorSelection: {
+                        authenticatorAttachment: "platform", // Força o leitor nativo (Digital / Face ID / PIN)
+                        userVerification: "required"
+                    },
+                    timeout: 60000
+                }
+            });
+
+            if (credential) {
+                const credIdBase64 = bufferToBase64(credential.rawId);
+                localStorage.setItem('bio_cred_id', credIdBase64);
+                localStorage.setItem('bio_u', usuarioAtual);
+                localStorage.setItem('bio_s', senhaAtual);
+
+                if (btnLoginBiometria) btnLoginBiometria.classList.remove('hidden');
+                modalBiometria.classList.add('hidden');
+                alert('Biometria ativada com sucesso! Nas próximas vezes você poderá entrar com a sua digital.');
+            }
+        } catch (err) {
+            console.error("Erro ao registrar biometria:", err);
+            alert('Não foi possível registrar a biometria.');
+        }
+    });
+}
+
+if (btnRecusarBiometria) {
+    btnRecusarBiometria.addEventListener('click', () => {
+        modalBiometria.classList.add('hidden');
+    });
+}
+
+// ==========================================
+// LOGIN COM BIOMETRIA
+// ==========================================
 if (btnLoginBiometria) {
     btnLoginBiometria.addEventListener('click', async() => {
+        const credIdBase64 = localStorage.getItem('bio_cred_id');
         const u = localStorage.getItem('bio_u');
         const s = localStorage.getItem('bio_s');
 
-        if (u && s && window.PublicKeyCredential) {
-            try {
-                const challenge = new Uint8Array(32);
-                window.crypto.getRandomValues(challenge);
+        if (!credIdBase64 || !u || !s) {
+            alert('Nenhuma biometria cadastrada neste dispositivo. Faça login manual.');
+            return;
+        }
 
-                await navigator.credentials.get({
-                    publicKey: { challenge: challenge, timeout: 60000, userVerification: "required" }
-                });
+        try {
+            const challenge = new Uint8Array(32);
+            window.crypto.getRandomValues(challenge);
+            const rawId = base64ToBuffer(credIdBase64);
+
+            const assertion = await navigator.credentials.get({
+                publicKey: {
+                    challenge: challenge,
+                    allowCredentials: [{
+                        id: rawId,
+                        type: 'public-key'
+                    }],
+                    userVerification: 'required',
+                    timeout: 60000
+                }
+            });
+
+            if (assertion) {
+                authStatusMsg.style.color = '#1b365d';
+                authStatusMsg.textContent = 'Autenticando via Biometria...';
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -233,40 +324,16 @@ if (btnLoginBiometria) {
 
                 const data = await response.json();
                 if (data.status === 'sucesso') {
+                    authStatusMsg.textContent = '';
                     await efetuarLoginSucesso(u, s);
                 } else {
-                    alert('Credenciais biométricas expiradas. Faça o login manual.');
+                    alert('Falha ao autenticar. Faça login com usuário e senha.');
                 }
-            } catch (err) {
-                alert('Autenticação biométrica não concluída.');
             }
+        } catch (err) {
+            console.error("Erro ao validar biometria:", err);
+            alert('Autenticação biométrica cancelada ou não reconhecida.');
         }
-    });
-}
-
-if (btnAtivarBiometria) {
-    btnAtivarBiometria.addEventListener('click', () => {
-        if (!isMobile) {
-            alert('A biometria é exclusiva para uso em dispositivos móveis.');
-            modalBiometria.classList.add('hidden');
-            return;
-        }
-
-        if (window.PublicKeyCredential) {
-            localStorage.setItem('biometria_configurada', 'true');
-            localStorage.setItem('bio_u', usuarioAtual);
-            localStorage.setItem('bio_s', senhaAtual);
-
-            if (btnLoginBiometria) btnLoginBiometria.classList.remove('hidden');
-            modalBiometria.classList.add('hidden');
-            alert('Biometria ativada com sucesso!');
-        }
-    });
-}
-
-if (btnRecusarBiometria) {
-    btnRecusarBiometria.addEventListener('click', () => {
-        modalBiometria.classList.add('hidden');
     });
 }
 
@@ -286,8 +353,8 @@ async function efetuarLoginSucesso(u, s) {
 
     await carregarDadosNuvem();
 
-    const bioConfig = localStorage.getItem('biometria_configurada');
-    if (isMobile && !bioConfig && window.PublicKeyCredential) {
+    const bioId = localStorage.getItem('bio_cred_id');
+    if (window.PublicKeyCredential && !bioId) {
         modalBiometria.classList.remove('hidden');
     }
 }
@@ -318,7 +385,7 @@ async function carregarDadosNuvem() {
 // LÓGICA FINANCEIRA E INTERFACE
 // ==========================================
 
-// Saldo inicial atualizado
+// Atualização de Saldo Inicial
 if (inputSaldoInicial) {
     inputSaldoInicial.addEventListener('input', (e) => {
         let val = e.target.value.replace(/[^\d,. ]/g, '').replace(',', '.');
@@ -327,7 +394,7 @@ if (inputSaldoInicial) {
     });
 }
 
-// Adicionar novo gasto
+// Adicionar Novo Gasto
 if (formGasto) {
     formGasto.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -345,12 +412,8 @@ if (formGasto) {
             return;
         }
 
-        // Formata data de AAAA-MM-DD para DD/MM/AAAA
-        const partesData = dataStr.split('-');
-        const dataFormatada = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
-
         dadosFinanceiros.gastos.push({
-            data: dataFormatada,
+            data: dataStr,
             descricao: descStr,
             valor: valorNum
         });
@@ -391,11 +454,11 @@ if (btnFecharMes) {
 
         dadosFinanceiros.gastos = [];
         atualizarInterface();
-        alert('Mês fechado com sucesso! Os lançamentos foram movidos para o histórico.');
+        alert('Mês fechado com sucesso! Os lançamentos foram movidos para o histórico de fechamentos.');
     });
 }
 
-// Cálculo e renderização da tela
+// Cálculos do Painel
 function atualizarCalculos() {
     const totalGasto = dadosFinanceiros.gastos.reduce((acc, g) => acc + (Number(g.valor) || 0), 0);
     const saldoRestante = dadosFinanceiros.saldoInicial - totalGasto;
@@ -407,6 +470,7 @@ function atualizarCalculos() {
     if (resumoTotalGastos) resumoTotalGastos.textContent = fmt(totalGasto);
 }
 
+// Renderização Geral
 function atualizarInterface() {
     if (inputSaldoInicial && !inputSaldoInicial.matches(':focus')) {
         inputSaldoInicial.value = dadosFinanceiros.saldoInicial ? dadosFinanceiros.saldoInicial.toFixed(2).replace('.', ',') : '';
@@ -414,7 +478,7 @@ function atualizarInterface() {
 
     atualizarCalculos();
 
-    // Renderizar Tabela de Gastos
+    // Tabela de Gastos do Mês
     if (tabelaBody) {
         tabelaBody.innerHTML = '';
         if (dadosFinanceiros.gastos.length === 0) {
@@ -433,7 +497,7 @@ function atualizarInterface() {
         }
     }
 
-    // Renderizar Histórico de Fechamentos
+    // Histórico de Fechamentos
     if (containerFechamentos) {
         containerFechamentos.innerHTML = '';
         if (dadosFinanceiros.fechamentos.length === 0) {
@@ -454,7 +518,7 @@ function atualizarInterface() {
     }
 }
 
-// SALVAMENTO NA NUVEM
+// SALVAR NA NUVEM
 if (btnSalvarSessao) {
     btnSalvarSessao.addEventListener('click', async() => {
         btnSalvarSessao.textContent = 'Salvando...';
