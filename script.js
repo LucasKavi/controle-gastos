@@ -1,5 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-VhAJvAVKBdIWrdM4T39CEU1RdnksKzI_ujd_jXPcN8Yt8t_3nWqZh8VbMTxMyqoi5w/exec";
-
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtd3gUQn8aEZT5tzGW5aNdsstMVMGFJ5e_jsVAbiQ-FylhCac4IjwxF1WSPmB6prEv8Q/exec"
 let usuarioAtual = null;
 let senhaAtual = null;
 
