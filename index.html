@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Financeiro Pro</title>
+    <title>Painel Financeiro</title>
 
     <link rel="stylesheet" href="style.css">
 
@@ -25,17 +25,19 @@
         <div id="tela-inicio" class="card welcome-card">
             <img src="logo.png" alt="Logo Painel Financeiro" class="logo-inicio">
             <h1>Controle Financeiro</h1>
-            <p class="subtitle">Acesse sua conta ou crie um novo usuário</p>
+            <p class="subtitle" id="auth-subtitle">Acesse sua conta ou crie um novo usuário</p>
 
             <form id="form-auth" autocomplete="off">
                 <div class="form-group">
                     <label for="auth-usuario">Usuário:</label>
                     <input type="text" id="auth-usuario" placeholder="Digite seu usuário..." required autocomplete="off">
                 </div>
-                <div class="form-group">
+
+                <div class="form-group hidden" id="group-auth-email">
                     <label for="auth-email">E-mail (obrigatório para novos cadastros):</label>
                     <input type="email" id="auth-email" placeholder="seuemail@exemplo.com" autocomplete="off">
                 </div>
+
                 <div class="form-group">
                     <label for="auth-senha">Senha:</label>
                     <input type="password" id="auth-senha" placeholder="8-16 chars, 1 num, 1 especial" required>
@@ -44,8 +46,35 @@
                 <button type="submit" id="btn-iniciar" class="btn-primary btn-3d btn-block">Acessar / Cadastrar</button>
             </form>
 
+            <div class="auth-toggle-container">
+                <button type="button" id="btn-toggle-cadastro" class="btn-link">Primeiro acesso? Cadastre-se aqui</button>
+            </div>
+
             <button id="btn-esqueci-senha" class="btn-link">Esqueci minha senha</button>
             <div id="auth-status-msg" class="status-msg-auth"></div>
+        </div>
+
+        <!-- TELA DE RECUPERAÇÃO DE SENHA -->
+        <div id="tela-recuperar-senha" class="card welcome-card hidden">
+            <img src="logo.png" alt="Logo Painel Financeiro" class="logo-inicio">
+            <h1>Recuperar Senha</h1>
+            <p class="subtitle">Informe seu usuário e e-mail cadastrados para receber o link de redefinição.</p>
+
+            <form id="form-recuperar-senha" autocomplete="off">
+                <div class="form-group">
+                    <label for="rec-usuario">Usuário:</label>
+                    <input type="text" id="rec-usuario" placeholder="Digite seu usuário..." required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="rec-email">E-mail:</label>
+                    <input type="email" id="rec-email" placeholder="seuemail@exemplo.com" required autocomplete="off">
+                </div>
+
+                <button type="submit" id="btn-enviar-recuperacao" class="btn-primary btn-3d btn-block">Enviar Link de Redefinição</button>
+            </form>
+
+            <button id="btn-voltar-login" class="btn-link">Voltar para o Login</button>
+            <div id="rec-status-msg" class="status-msg-auth"></div>
         </div>
 
         <!-- PAINEL PRINCIPAL -->
@@ -64,9 +93,9 @@
 
             <!-- NAVEGAÇÃO ENTRE ABAS -->
             <nav class="nav-buttons">
-                <button id="btn-nav-lancamento" class="btn-nav active">+ Novo Lançamento</button>
-                <button id="btn-nav-resumo" class="btn-nav">📊 Resumo de Gastos</button>
-                <button id="btn-nav-relatorio" class="btn-nav">📑 Fechamentos</button>
+                <button id="btn-nav-lancamento" class="btn-nav active">Novo Lançamento</button>
+                <button id="btn-nav-resumo" class="btn-nav">Resumo de Gastos</button>
+                <button id="btn-nav-relatorio" class="btn-nav">Fechamentos</button>
             </nav>
 
             <!-- CARD DE SALDO INICIAL -->
@@ -126,7 +155,7 @@
                         <strong>Total do Mês: <span id="resumo-total-gastos">R$ 0,00</span></strong>
                     </div>
 
-                    <button id="btn-fechar-mes" class="btn-warning btn-3d btn-block">🔒 Fechar Mês Atual</button>
+                    <button id="btn-fechar-mes" class="btn-warning btn-3d btn-block">Fechar Mês Atual</button>
                 </div>
             </section>
 

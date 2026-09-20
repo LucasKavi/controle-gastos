@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtd3gUQn8aEZT5tzGW5aNdsstMVMGFJ5e_jsVAbiQ-FylhCac4IjwxF1WSPmB6prEv8Q/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-VhAJvAVKBdIWrdM4T39CEU1RdnksKzI_ujd_jXPcN8Yt8t_3nWqZh8VbMTxMyqoi5w/exec";
 let usuarioAtual = null;
 let senhaAtual = null;
 
@@ -13,10 +13,19 @@ const regexSenhaForte = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])
 
 // ELEMENTOS DOM
 const telaInicio = document.getElementById('tela-inicio');
+const telaRecuperarSenha = document.getElementById('tela-recuperar-senha');
 const painelPrincipal = document.getElementById('painel-principal');
+
 const formAuth = document.getElementById('form-auth');
+const groupAuthEmail = document.getElementById('group-auth-email');
+const authEmailInput = document.getElementById('auth-email');
+const btnToggleCadastro = document.getElementById('btn-toggle-cadastro');
 const authStatusMsg = document.getElementById('auth-status-msg');
+
 const btnEsqueciSenha = document.getElementById('btn-esqueci-senha');
+const formRecuperarSenha = document.getElementById('form-recuperar-senha');
+const btnVoltarLogin = document.getElementById('btn-voltar-login');
+const recStatusMsg = document.getElementById('rec-status-msg');
 
 const saudacaoUsuario = document.getElementById('saudacao-usuario');
 const inputSaldoInicial = document.getElementById('saldo-inicial');
@@ -70,6 +79,23 @@ if (inputDescricao) {
     }
 });
 
+// ALTERNAR VISIBILIDADE DO CAMPO DE E-MAIL APENAS PARA PRIMEIRO CADASTRO
+if (btnToggleCadastro) {
+    btnToggleCadastro.addEventListener('click', () => {
+        const estaOculto = groupAuthEmail.classList.contains('hidden');
+        if (estaOculto) {
+            groupAuthEmail.classList.remove('hidden');
+            authEmailInput.setAttribute('required', 'required');
+            btnToggleCadastro.textContent = 'Já possui conta? Faça login';
+        } else {
+            groupAuthEmail.classList.add('hidden');
+            authEmailInput.removeAttribute('required');
+            authEmailInput.value = '';
+            btnToggleCadastro.textContent = 'Primeiro acesso? Cadastre-se aqui';
+        }
+    });
+}
+
 // FUNÇÃO AUXILIAR DE ENTRAR NO PAINEL PRINCIPAL
 async function efetuarLoginSucesso(u, s) {
     usuarioAtual = u;
@@ -77,6 +103,7 @@ async function efetuarLoginSucesso(u, s) {
     saudacaoUsuario.textContent = `Olá, ${u.charAt(0).toUpperCase() + u.slice(1)}`;
 
     telaInicio.classList.add('hidden');
+    telaRecuperarSenha.classList.add('hidden');
     painelPrincipal.classList.remove('hidden');
 
     await carregarDadosNuvem();
@@ -91,7 +118,7 @@ async function efetuarLoginSucesso(u, s) {
 formAuth.addEventListener('submit', async(e) => {
     e.preventDefault();
     const u = document.getElementById('auth-usuario').value.trim();
-    const email = document.getElementById('auth-email').value.trim();
+    const email = authEmailInput.value.trim();
     const s = document.getElementById('auth-senha').value.trim();
 
     authStatusMsg.style.color = 'var(--danger)';
@@ -124,6 +151,13 @@ formAuth.addEventListener('submit', async(e) => {
         } else {
             authStatusMsg.style.color = 'var(--danger)';
             authStatusMsg.textContent = res.mensagem;
+
+            // Se for um novo cadastro e o e-mail não estiver visível, exibe o campo para preenchimento
+            if (res.mensagem && res.mensagem.toLowerCase().includes('e-mail') && groupAuthEmail.classList.contains('hidden')) {
+                groupAuthEmail.classList.remove('hidden');
+                authEmailInput.setAttribute('required', 'required');
+                if (btnToggleCadastro) btnToggleCadastro.textContent = 'Já possui conta? Faça login';
+            }
         }
     } catch (err) {
         authStatusMsg.style.color = 'var(--danger)';
@@ -160,19 +194,28 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// RECUPERAÇÃO DE SENHA POR EMAIL
-btnEsqueciSenha.addEventListener('click', async() => {
-    const u = document.getElementById('auth-usuario').value.trim();
-    const email = document.getElementById('auth-email').value.trim();
+// REDIRECIONAMENTO DENTRO DO PROGRAMA PARA A TELA DE RECUPERAÇÃO DE SENHA
+btnEsqueciSenha.addEventListener('click', () => {
+    telaInicio.classList.add('hidden');
+    telaRecuperarSenha.classList.remove('hidden');
+    recStatusMsg.textContent = '';
+    formRecuperarSenha.reset();
+});
 
-    if (!u || !email) {
-        authStatusMsg.style.color = 'var(--danger)';
-        authStatusMsg.textContent = 'Preencha Usuário e E-mail para redefinir a senha.';
-        return;
-    }
+btnVoltarLogin.addEventListener('click', () => {
+    telaRecuperarSenha.classList.add('hidden');
+    telaInicio.classList.remove('hidden');
+    authStatusMsg.textContent = '';
+});
 
-    authStatusMsg.style.color = 'var(--primary)';
-    authStatusMsg.textContent = 'Solicitando redefinição...';
+// SOLICITAÇÃO DE LINK DE REDEFINIÇÃO DE SENHA POR EMAIL
+formRecuperarSenha.addEventListener('submit', async(e) => {
+    e.preventDefault();
+    const u = document.getElementById('rec-usuario').value.trim();
+    const email = document.getElementById('rec-email').value.trim();
+
+    recStatusMsg.style.color = 'var(--primary)';
+    recStatusMsg.textContent = 'Solicitando redefinição de senha...';
 
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
@@ -190,14 +233,15 @@ btnEsqueciSenha.addEventListener('click', async() => {
         const res = await resp.json();
 
         if (res.status === 'sucesso') {
-            authStatusMsg.style.color = 'var(--success)';
+            recStatusMsg.style.color = 'var(--success)';
+            recStatusMsg.textContent = res.mensagem || 'Link de redefinição enviado para o e-mail informado com sucesso!';
         } else {
-            authStatusMsg.style.color = 'var(--danger)';
+            recStatusMsg.style.color = 'var(--danger)';
+            recStatusMsg.textContent = res.mensagem;
         }
-        authStatusMsg.textContent = res.mensagem;
     } catch (e) {
-        authStatusMsg.style.color = 'var(--danger)';
-        authStatusMsg.textContent = 'Erro ao conectar com o servidor.';
+        recStatusMsg.style.color = 'var(--danger)';
+        recStatusMsg.textContent = 'Erro ao conectar com o servidor.';
     }
 });
 

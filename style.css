@@ -221,6 +221,10 @@ body {
     margin-bottom: 16px;
 }
 
+.auth-toggle-container {
+    margin-top: 4px;
+}
+
 .app-header {
     display: flex;
     justify-content: space-between;
