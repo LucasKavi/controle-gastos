@@ -40,7 +40,7 @@
 
                 <div class="form-group">
                     <label for="auth-senha">Senha:</label>
-                    <input type="password" id="auth-senha" placeholder="8-16 chars, 1 num, 1 especial" required>
+                    <input type="password" id="auth-senha" placeholder="Sua senha" required>
                 </div>
 
                 <button type="submit" id="btn-iniciar" class="btn-primary btn-3d btn-block">Acessar / Cadastrar</button>
@@ -115,57 +115,53 @@
             </section>
 
             <!-- ABA 1: NOVO LANÇAMENTO -->
-            <main id="tela-lancamento">
-                <div class="card">
-                    <h3>Lançar Novo Gasto</h3>
-                    <form id="form-gasto" autocomplete="off">
-                        <div class="form-group">
-                            <label for="data">Data:</label>
-                            <input type="date" id="data" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="descricao">Descrição (sem números):</label>
-                            <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível..." required autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="valor">Valor (R$):</label>
-                            <input type="text" id="valor" placeholder="0,00" required inputmode="decimal">
-                        </div>
-                        <button type="submit" class="btn-primary btn-3d btn-block">Adicionar Gasto</button>
-                    </form>
-                    <div id="status-msg" class="status-msg"></div>
-                </div>
-            </main>
+            <section id="tela-lancamento" class="card">
+                <h3>Lançar Novo Gasto</h3>
+                <form id="form-gasto" autocomplete="off">
+                    <div class="form-group">
+                        <label for="data">Data:</label>
+                        <input type="date" id="data" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="descricao">Descrição (sem números):</label>
+                        <input type="text" id="descricao" placeholder="Ex: Mercado, Combustível..." required autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="valor">Valor (R$):</label>
+                        <input type="text" id="valor" placeholder="0,00" required inputmode="decimal">
+                    </div>
+                    <button type="submit" class="btn-primary btn-3d btn-block">Adicionar Gasto</button>
+                </form>
+                <div id="status-msg" class="status-msg"></div>
+            </section>
 
             <!-- ABA 2: RESUMO DE GASTOS -->
-            <section id="tela-resumo" class="hidden">
-                <div class="card">
-                    <h3>Lançamentos do Mês</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Data</th>
-                                    <th>Descrição</th>
-                                    <th>Valor</th>
-                                    <th>Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-body"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="total-box">
-                        <strong>Total do Mês: <span id="resumo-total-gastos">R$ 0,00</span></strong>
-                    </div>
-
-                    <button id="btn-fechar-mes" class="btn-warning btn-3d btn-block">Fechar Mês Atual</button>
+            <section id="tela-resumo" class="card hidden">
+                <h3>Lançamentos do Mês</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-body"></tbody>
+                    </table>
                 </div>
+
+                <div class="total-box" style="margin-top: 15px; text-align: right;">
+                    <strong>Total do Mês: <span id="resumo-total-gastos">R$ 0,00</span></strong>
+                </div>
+
+                <button id="btn-fechar-mes" class="btn-warning btn-3d btn-block" style="margin-top: 15px;">Fechar Mês Atual</button>
             </section>
 
             <!-- ABA 3: HISTÓRICO DE FECHAMENTOS -->
             <section id="tela-relatorio" class="hidden">
-                <h3 style="margin-bottom: 12px; color: var(--primary);">Histórico de Fechamentos</h3>
+                <h3 style="margin-bottom: 12px; color: var(--primary, #1b365d);">Histórico de Fechamentos</h3>
                 <div id="container-fechamentos"></div>
             </section>
 
@@ -173,9 +169,9 @@
 
     </div>
 
-    <!-- MODAIS (Colocados como filhos diretos do BODY para sobreposição correta) -->
+    <!-- MODAIS -->
 
-    <!-- MODAL DE ALERTA PARA MÊS ANTERIOR -->
+    <!-- MODAL DE BLOQUEIO -->
     <div id="modal-bloqueio" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon">⚠️</div>
@@ -185,7 +181,7 @@
         </div>
     </div>
 
-    <!-- MODAL POP-UP DE SOLICITAÇÃO DE BIOMETRIA -->
+    <!-- MODAL POP-UP DE BIOMETRIA -->
     <div id="modal-biometria" class="modal-overlay hidden">
         <div class="modal-card">
             <div class="modal-icon">👆</div>

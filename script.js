@@ -1,7 +1,6 @@
 // ==========================================
 // CONFIGURAÇÃO DA API DO GOOGLE APPS SCRIPT
 // ==========================================
-// (Substitua pela sua URL de implantação web do Apps Script)
 const API_URL = "https://script.google.com/macros/s/AKfycbz1ByHSj8YUKCTDLloEdLHNGyv2IOlME0ZSyjMr1HS0aV_kwOH73ZizkvPwgzPzojCppg/exec";
 
 // ==========================================
@@ -30,26 +29,49 @@ const saudacaoUsuario = document.getElementById('saudacao-usuario');
 const btnSair = document.getElementById('btn-sair');
 const btnSalvarSessao = document.getElementById('btn-salvar-sessao');
 
-// Elementos de Biometria
+// Navegação de Abas
+const btnNavLancamento = document.getElementById('btn-nav-lancamento');
+const btnNavResumo = document.getElementById('btn-nav-resumo');
+const btnNavRelatorio = document.getElementById('btn-nav-relatorio');
+
+const telaLancamento = document.getElementById('tela-lancamento');
+const telaResumo = document.getElementById('tela-resumo');
+const telaRelatorio = document.getElementById('tela-relatorio');
+
+// Elementos Financeiros
+const inputSaldoInicial = document.getElementById('saldo-inicial');
+const displayTotalGasto = document.getElementById('display-total-gasto');
+const displaySaldoRestante = document.getElementById('display-saldo-restante');
+const formGasto = document.getElementById('form-gasto');
+const inputDataGasto = document.getElementById('data');
+const inputDescricaoGasto = document.getElementById('descricao');
+const inputValorGasto = document.getElementById('valor');
+const statusMsgGasto = document.getElementById('status-msg');
+const tabelaBody = document.getElementById('tabela-body');
+const resumoTotalGastos = document.getElementById('resumo-total-gastos');
+const btnFecharMes = document.getElementById('btn-fechar-mes');
+const containerFechamentos = document.getElementById('container-fechamentos');
+
+// Modais
+const modalBloqueio = document.getElementById('modal-bloqueio');
+const btnFecharModal = document.getElementById('btn-fechar-modal');
 const btnLoginBiometria = document.getElementById('btn-login-biometria');
 const modalBiometria = document.getElementById('modal-biometria');
 const btnAtivarBiometria = document.getElementById('btn-ativar-biometria');
 const btnRecusarBiometria = document.getElementById('btn-recusar-biometria');
 
-// Variáveis de Estado
+// Variáveis de Estado Global
 let modoCadastro = false;
 let usuarioAtual = '';
 let senhaAtual = '';
 let dadosFinanceiros = { saldoInicial: 0, gastos: [], fechamentos: [] };
 
-// Verifica se está em um dispositivo móvel
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // ==========================================
-// INICIALIZAÇÃO E BIOMETRIA
+// INICIALIZAÇÃO
 // ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    // Exibe botão de biometria na tela de login se ativado no mobile
     if (isMobile) {
         const bioAtiva = localStorage.getItem('biometria_configurada');
         if (bioAtiva === 'true' && btnLoginBiometria) {
@@ -58,7 +80,26 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Botão de alternar entre "Login" e "Cadastro"
+// ==========================================
+// COMPORTAMENTO DAS ABAS DE NAVEGAÇÃO
+// ==========================================
+function alternarAba(abaAtiva, btnAtivo) {
+    [telaLancamento, telaResumo, telaRelatorio].forEach(t => {
+        if (t) t.classList.add('hidden');
+    });
+    [btnNavLancamento, btnNavResumo, btnNavRelatorio].forEach(b => {
+        if (b) b.classList.remove('active');
+    });
+
+    if (abaAtiva) abaAtiva.classList.remove('hidden');
+    if (btnAtivo) btnAtivo.classList.add('active');
+}
+
+if (btnNavLancamento) btnNavLancamento.addEventListener('click', () => alternarAba(telaLancamento, btnNavLancamento));
+if (btnNavResumo) btnNavResumo.addEventListener('click', () => alternarAba(telaResumo, btnNavResumo));
+if (btnNavRelatorio) btnNavRelatorio.addEventListener('click', () => alternarAba(telaRelatorio, btnNavRelatorio));
+
+// Alternar Login/Cadastro
 if (btnToggleCadastro) {
     btnToggleCadastro.addEventListener('click', () => {
         modoCadastro = !modoCadastro;
@@ -89,8 +130,14 @@ if (btnVoltarLogin) {
     });
 }
 
+if (btnFecharModal) {
+    btnFecharModal.addEventListener('click', () => {
+        if (modalBloqueio) modalBloqueio.classList.add('hidden');
+    });
+}
+
 // ==========================================
-// SUBMIT: LOGIN / CADASTRO
+// LOGIN E CADASTRO
 // ==========================================
 if (formAuth) {
     formAuth.addEventListener('submit', async(e) => {
@@ -131,9 +178,7 @@ if (formAuth) {
     });
 }
 
-// ==========================================
-// SUBMIT: RECUPERAR SENHA (ENVIA LINK NO E-MAIL)
-// ==========================================
+// RECUPERAR SENHA
 if (formRecuperarSenha) {
     formRecuperarSenha.addEventListener('submit', async(e) => {
         e.preventDefault();
@@ -156,14 +201,8 @@ if (formRecuperarSenha) {
             });
 
             const result = await response.json();
-
-            if (result.status === 'sucesso') {
-                recStatusMsg.style.color = '#38a169';
-                recStatusMsg.textContent = result.mensagem;
-            } else {
-                recStatusMsg.style.color = '#e53e3e';
-                recStatusMsg.textContent = result.mensagem;
-            }
+            recStatusMsg.style.color = result.status === 'sucesso' ? '#38a169' : '#e53e3e';
+            recStatusMsg.textContent = result.mensagem;
         } catch (err) {
             recStatusMsg.style.color = '#e53e3e';
             recStatusMsg.textContent = 'Erro de conexão ao solicitar redefinição.';
@@ -171,9 +210,7 @@ if (formRecuperarSenha) {
     });
 }
 
-// ==========================================
-// ENTRAR COM BIOMETRIA
-// ==========================================
+// BIOMETRIA
 if (btnLoginBiometria) {
     btnLoginBiometria.addEventListener('click', async() => {
         const u = localStorage.getItem('bio_u');
@@ -188,7 +225,6 @@ if (btnLoginBiometria) {
                     publicKey: { challenge: challenge, timeout: 60000, userVerification: "required" }
                 });
 
-                // Valida na nuvem após a confirmação biométrica
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -208,7 +244,6 @@ if (btnLoginBiometria) {
     });
 }
 
-// AÇÕES DO MODAL DE BIOMETRIA
 if (btnAtivarBiometria) {
     btnAtivarBiometria.addEventListener('click', () => {
         if (!isMobile) {
@@ -236,28 +271,27 @@ if (btnRecusarBiometria) {
 }
 
 // ==========================================
-// SUCESSO NO LOGIN & CARREGAMENTO DOS DADOS
+// LOGIN BEM-SUCEDIDO E CARREGAMENTO DE DADOS
 // ==========================================
 async function efetuarLoginSucesso(u, s) {
     usuarioAtual = u;
     senhaAtual = s;
-    saudacaoUsuario.textContent = `Olá, ${u.charAt(0).toUpperCase() + u.slice(1)}`;
+    if (saudacaoUsuario) {
+        saudacaoUsuario.textContent = `Olá, ${u.charAt(0).toUpperCase() + u.slice(1)}`;
+    }
 
     telaInicio.classList.add('hidden');
     telaRecuperarSenha.classList.add('hidden');
     painelPrincipal.classList.remove('hidden');
 
-    // PUXA O BANCO DE DADOS DE GASTOS DO MÊS IMEDIATAMENTE
     await carregarDadosNuvem();
 
-    // Solicita biometria no mobile se ainda não ativada
     const bioConfig = localStorage.getItem('biometria_configurada');
     if (isMobile && !bioConfig && window.PublicKeyCredential) {
         modalBiometria.classList.remove('hidden');
     }
 }
 
-// BUSCA DADOS NA PLANILHA GOOGLE
 async function carregarDadosNuvem() {
     try {
         const response = await fetch(API_URL, {
@@ -268,26 +302,182 @@ async function carregarDadosNuvem() {
 
         const res = await response.json();
         if (res.status === 'sucesso' && res.dados) {
-            dadosFinanceiros = res.dados;
+            dadosFinanceiros = {
+                saldoInicial: Number(res.dados.saldoInicial) || 0,
+                gastos: Array.isArray(res.dados.gastos) ? res.dados.gastos : [],
+                fechamentos: Array.isArray(res.dados.fechamentos) ? res.dados.fechamentos : []
+            };
             atualizarInterface();
         }
     } catch (e) {
-        console.error("Erro ao puxar lançamentos do mês:", e);
+        console.error("Erro ao carregar dados:", e);
     }
 }
 
-// SALVA ALTERAÇÕES NA NUVEM
+// ==========================================
+// LÓGICA FINANCEIRA E INTERFACE
+// ==========================================
+
+// Saldo inicial atualizado
+if (inputSaldoInicial) {
+    inputSaldoInicial.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/[^\d,. ]/g, '').replace(',', '.');
+        dadosFinanceiros.saldoInicial = parseFloat(val) || 0;
+        atualizarCalculos();
+    });
+}
+
+// Adicionar novo gasto
+if (formGasto) {
+    formGasto.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const dataStr = inputDataGasto.value;
+        const descStr = inputDescricaoGasto.value.trim();
+        let valStr = inputValorGasto.value.replace('.', '').replace(',', '.');
+        const valorNum = parseFloat(valStr) || 0;
+
+        if (!dataStr || !descStr || valorNum <= 0) {
+            if (statusMsgGasto) {
+                statusMsgGasto.style.color = '#e53e3e';
+                statusMsgGasto.textContent = 'Preencha todos os campos corretamente.';
+            }
+            return;
+        }
+
+        // Formata data de AAAA-MM-DD para DD/MM/AAAA
+        const partesData = dataStr.split('-');
+        const dataFormatada = `${partesData[2]}/${partesData[1]}/${partesData[0]}`;
+
+        dadosFinanceiros.gastos.push({
+            data: dataFormatada,
+            descricao: descStr,
+            valor: valorNum
+        });
+
+        formGasto.reset();
+        if (statusMsgGasto) {
+            statusMsgGasto.style.color = '#38a169';
+            statusMsgGasto.textContent = 'Gasto adicionado com sucesso!';
+            setTimeout(() => { statusMsgGasto.textContent = ''; }, 3000);
+        }
+
+        atualizarInterface();
+    });
+}
+
+// Função de Remoção de Gasto
+window.removerGasto = function(index) {
+    dadosFinanceiros.gastos.splice(index, 1);
+    atualizarInterface();
+};
+
+// Fechar Mês Atual
+if (btnFecharMes) {
+    btnFecharMes.addEventListener('click', () => {
+        if (dadosFinanceiros.gastos.length === 0) {
+            alert('Não há lançamentos para fechar o mês.');
+            return;
+        }
+
+        const totalMes = dadosFinanceiros.gastos.reduce((acc, g) => acc + (Number(g.valor) || 0), 0);
+        const dataHoje = new Date().toLocaleDateString('pt-BR');
+
+        dadosFinanceiros.fechamentos.push({
+            dataFechamento: dataHoje,
+            totalGasto: totalMes,
+            itens: [...dadosFinanceiros.gastos]
+        });
+
+        dadosFinanceiros.gastos = [];
+        atualizarInterface();
+        alert('Mês fechado com sucesso! Os lançamentos foram movidos para o histórico.');
+    });
+}
+
+// Cálculo e renderização da tela
+function atualizarCalculos() {
+    const totalGasto = dadosFinanceiros.gastos.reduce((acc, g) => acc + (Number(g.valor) || 0), 0);
+    const saldoRestante = dadosFinanceiros.saldoInicial - totalGasto;
+
+    const fmt = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
+
+    if (displayTotalGasto) displayTotalGasto.textContent = fmt(totalGasto);
+    if (displaySaldoRestante) displaySaldoRestante.textContent = fmt(saldoRestante);
+    if (resumoTotalGastos) resumoTotalGastos.textContent = fmt(totalGasto);
+}
+
+function atualizarInterface() {
+    if (inputSaldoInicial && !inputSaldoInicial.matches(':focus')) {
+        inputSaldoInicial.value = dadosFinanceiros.saldoInicial ? dadosFinanceiros.saldoInicial.toFixed(2).replace('.', ',') : '';
+    }
+
+    atualizarCalculos();
+
+    // Renderizar Tabela de Gastos
+    if (tabelaBody) {
+        tabelaBody.innerHTML = '';
+        if (dadosFinanceiros.gastos.length === 0) {
+            tabelaBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#718096;">Nenhum gasto lançado este mês.</td></tr>';
+        } else {
+            dadosFinanceiros.gastos.forEach((gasto, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${gasto.data}</td>
+                    <td>${gasto.descricao}</td>
+                    <td>R$ ${Number(gasto.valor).toFixed(2).replace('.', ',')}</td>
+                    <td><button onclick="removerGasto(${idx})" class="btn-danger btn-sm" style="padding: 2px 8px;">✕</button></td>
+                `;
+                tabelaBody.appendChild(tr);
+            });
+        }
+    }
+
+    // Renderizar Histórico de Fechamentos
+    if (containerFechamentos) {
+        containerFechamentos.innerHTML = '';
+        if (dadosFinanceiros.fechamentos.length === 0) {
+            containerFechamentos.innerHTML = '<div class="card"><p style="color:#718096; text-align:center;">Nenhum fechamento realizado.</p></div>';
+        } else {
+            dadosFinanceiros.fechamentos.forEach((fechamento, idx) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.marginBottom = '12px';
+                card.innerHTML = `
+                    <h4>Fechamento #${idx + 1} - ${fechamento.dataFechamento}</h4>
+                    <p style="margin: 8px 0; font-weight: bold; color: #1b365d;">Total Fechado: R$ ${Number(fechamento.totalGasto).toFixed(2).replace('.', ',')}</p>
+                    <p style="font-size: 0.85rem; color: #4a5568;">Total de itens: ${fechamento.itens ? fechamento.itens.length : 0}</p>
+                `;
+                containerFechamentos.appendChild(card);
+            });
+        }
+    }
+}
+
+// SALVAMENTO NA NUVEM
 if (btnSalvarSessao) {
     btnSalvarSessao.addEventListener('click', async() => {
+        btnSalvarSessao.textContent = 'Salvando...';
         try {
-            await fetch(API_URL, {
+            const resp = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'salvarTudo', usuario: usuarioAtual, dadosApp: dadosFinanceiros })
+                body: JSON.stringify({
+                    action: 'salvarTudo',
+                    usuario: usuarioAtual,
+                    dadosApp: dadosFinanceiros
+                })
             });
-            alert('Dados salvos com sucesso!');
+            const res = await resp.json();
+            btnSalvarSessao.textContent = 'Salvar';
+            if (res.status === 'sucesso') {
+                alert('Dados salvos na nuvem com sucesso!');
+            } else {
+                alert('Erro ao salvar: ' + res.mensagem);
+            }
         } catch (e) {
-            alert('Erro ao salvar os dados.');
+            btnSalvarSessao.textContent = 'Salvar';
+            alert('Erro de conexão ao salvar os dados.');
         }
     });
 }
@@ -297,11 +487,8 @@ if (btnSair) {
     btnSair.addEventListener('click', () => {
         usuarioAtual = '';
         senhaAtual = '';
+        dadosFinanceiros = { saldoInicial: 0, gastos: [], fechamentos: [] };
         painelPrincipal.classList.add('hidden');
         telaInicio.classList.remove('hidden');
     });
-}
-
-function atualizarInterface() {
-    // Atualiza elementos da tabela e saldo no painel principal
 }
