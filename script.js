@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-VhAJvAVKBdIWrdM4T39CEU1RdnksKzI_ujd_jXPcN8Yt8t_3nWqZh8VbMTxMyqoi5w/exec"
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-VhAJvAVKBdIWrdM4T39CEU1RdnksKzI_ujd_jXPcN8Yt8t_3nWqZh8VbMTxMyqoi5w/exec";
 
 let usuarioAtual = null;
 let senhaAtual = null;
@@ -71,7 +71,7 @@ if (inputDescricao) {
     }
 });
 
-// FUNÇÃO AUXILIAR DE ENTAR NO PAINEL PRINCIPAL
+// FUNÇÃO AUXILIAR DE ENTRAR NO PAINEL PRINCIPAL
 async function efetuarLoginSucesso(u, s) {
     usuarioAtual = u;
     senhaAtual = s;
@@ -82,7 +82,6 @@ async function efetuarLoginSucesso(u, s) {
 
     await carregarDadosNuvem();
 
-    // POP-UP DE BIOMETRIA: PERGUNTA SOMENTE UMA VEZ CASO NÃO TENHA SIDO CONFIGURADA
     const bioConfig = localStorage.getItem('biometria_configurada');
     if (!bioConfig && window.PublicKeyCredential) {
         modalBiometria.classList.remove('hidden');
@@ -114,7 +113,10 @@ formAuth.addEventListener('submit', async(e) => {
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'autenticarOuCadastrar', usuario: u, email, senha: s })
+            mode: 'cors',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'autenticarOuCadastrar', usuario: u, email: email, senha: s })
         });
         const res = await resp.json();
 
@@ -144,7 +146,7 @@ btnRecusarBiometria.addEventListener('click', () => {
     modalBiometria.classList.add('hidden');
 });
 
-// AUTOLOGIN/PROMPT DE BIOMETRIA AO ABRIR O APP (SE JÁ CADASTROU)
+// AUTOLOGIN / PROMPT DE BIOMETRIA
 window.addEventListener('DOMContentLoaded', () => {
     const isBio = localStorage.getItem('biometria_configurada');
     const u = localStorage.getItem('bio_u');
@@ -159,7 +161,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// RECUPERAÇÃO DE SENHA POR EMAIL COM LINK DE RETORNO
+// RECUPERAÇÃO DE SENHA POR EMAIL
 btnEsqueciSenha.addEventListener('click', async() => {
     const u = document.getElementById('auth-usuario').value.trim();
     const email = document.getElementById('auth-email').value.trim();
@@ -176,11 +178,14 @@ btnEsqueciSenha.addEventListener('click', async() => {
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({
                 action: 'recuperarSenha',
                 usuario: u,
                 email: email,
-                origin: window.location.href.split('#')[0] // Passa a URL atual para o e-mail montar o link de volta
+                origin: window.location.href.split('#')[0]
             })
         });
         const res = await resp.json();
@@ -197,11 +202,14 @@ btnEsqueciSenha.addEventListener('click', async() => {
     }
 });
 
-// CARREGAR DADOS
+// CARREGAR DADOS DA NUVEM
 async function carregarDadosNuvem() {
     try {
         const resp = await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
+            mode: 'cors',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'carregarDados', usuario: usuarioAtual, senha: senhaAtual })
         });
         const res = await resp.json();
@@ -224,8 +232,10 @@ async function salvarNuvem() {
     try {
         await fetch(APPS_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: 'salvarTudo', usuario: usuarioAtual, senha: senhaAtual, dadosApp })
+            mode: 'cors',
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: 'salvarTudo', usuario: usuarioAtual, senha: senhaAtual, dadosApp: dadosApp })
         });
     } catch (e) {
         console.error("Erro ao salvar", e);
@@ -279,7 +289,7 @@ btnFecharModal.addEventListener('click', () => {
     modalBloqueio.classList.add('hidden');
 });
 
-// EXTRAI APENAS O MÊS E ANO (MM/AAAA)
+// EXTRAI MES E ANO
 function obterMesAno(gastos) {
     if (gastos && gastos.length > 0) {
         const [ano, mes] = gastos[0].data.split('-');
@@ -290,7 +300,7 @@ function obterMesAno(gastos) {
     return `${m}/${d.getFullYear()}`;
 }
 
-// RENDERIZAÇÃO DA INTERFACE E HISTÓRICO
+// RENDERIZAÇÃO DA INTERFACE
 function atualizarInterface() {
     dadosApp.saldoInicial = parseBRL(inputSaldoInicial.value);
 
@@ -301,7 +311,7 @@ function atualizarInterface() {
     displaySaldoRestante.textContent = formatarBRL(saldoRestante);
     resumoTotalGastos.textContent = formatarBRL(totalGasto);
 
-    // 1. Tabela de Gastos do Mês Atual
+    // 1. Tabela do Mês Atual
     tabelaBody.innerHTML = '';
     dadosApp.gastos.forEach((gasto, index) => {
         const tr = document.createElement('tr');
@@ -315,7 +325,7 @@ function atualizarInterface() {
         tabelaBody.appendChild(tr);
     });
 
-    // 2. Renderização da Aba Fechamentos (Estilo Extrato)
+    // 2. Extrato de Fechamentos
     containerFechamentos.innerHTML = '';
 
     if (!dadosApp.fechamentos || dadosApp.fechamentos.length === 0) {
@@ -323,7 +333,6 @@ function atualizarInterface() {
         return;
     }
 
-    // Exibe os fechamentos
     dadosApp.fechamentos.forEach((fechamento, fechamentoIdx) => {
         const mesAnoRef = fechamento.mesReferencia || obterMesAno(fechamento.itens);
 
@@ -381,14 +390,13 @@ function atualizarInterface() {
     });
 }
 
-// EXCLUIR GASTO DO MÊS EM ABERTO
+// REMOVER GASTO
 window.removerGasto = function(idx) {
     dadosApp.gastos.splice(idx, 1);
     atualizarInterface();
     salvarNuvem();
 };
 
-// EXCLUIR ITEM ESPECÍFICO DE UM FECHAMENTO HISTÓRICO
 window.excluirItemFechamento = function(fechamentoIdx, itemIdx) {
     if (!confirm('Deseja realmente excluir este item do fechamento?')) return;
 
@@ -397,7 +405,6 @@ window.excluirItemFechamento = function(fechamentoIdx, itemIdx) {
 
     fechamento.itens.splice(itemIdx, 1);
 
-    // Recalcula o total gasto e saldo restante do fechamento
     const novoTotalGasto = fechamento.itens.reduce((acc, curr) => acc + curr.valor, 0);
     fechamento.totalGasto = novoTotalGasto;
     fechamento.saldoRestante = Number(fechamento.saldoInicial || 0) - novoTotalGasto;
@@ -406,7 +413,6 @@ window.excluirItemFechamento = function(fechamentoIdx, itemIdx) {
     salvarNuvem();
 };
 
-// EXCLUIR CARD COMPLETO DE FECHAMENTO
 window.excluirFechamentoInteiro = function(fechamentoIdx) {
     if (!confirm('Deseja realmente excluir todo o extrato deste mês fechado?')) return;
 
@@ -415,7 +421,7 @@ window.excluirFechamentoInteiro = function(fechamentoIdx) {
     salvarNuvem();
 };
 
-// AÇÃO DE FECHAR O MÊS ATUAL
+// FECHAR MÊS
 btnFecharMes.addEventListener('click', async() => {
     if (!dadosApp.gastos || dadosApp.gastos.length === 0) {
         alert('Sem gastos para fechar no mês atual.');
@@ -438,7 +444,7 @@ btnFecharMes.addEventListener('click', async() => {
         itens: [...dadosApp.gastos]
     };
 
-    dadosApp.fechamentos.unshift(novoFechamento); // Insere no topo
+    dadosApp.fechamentos.unshift(novoFechamento);
     dadosApp.gastos = [];
 
     atualizarInterface();
@@ -455,7 +461,7 @@ btnSair.addEventListener('click', () => {
     formAuth.reset();
 });
 
-// TROCA DE ABAS
+// ABAS
 const abas = {
     'btn-nav-lancamento': document.getElementById('tela-lancamento'),
     'btn-nav-resumo': document.getElementById('tela-resumo'),
