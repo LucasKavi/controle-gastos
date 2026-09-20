@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
 
     <!-- PWA e Ícone -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="theme-color" content="#1b365d">
@@ -44,6 +44,10 @@
                 </div>
 
                 <button type="submit" id="btn-iniciar" class="btn-primary btn-3d btn-block">Acessar / Cadastrar</button>
+
+                <button type="button" id="btn-login-biometria" class="btn-secondary btn-3d btn-block hidden" style="margin-top: 10px;">
+                    Entrar com Biometria / Digital
+                </button>
             </form>
 
             <div class="auth-toggle-container">
@@ -169,6 +173,8 @@
 
     </div>
 
+    <!-- MODAIS (Colocados como filhos diretos do BODY para sobreposição correta) -->
+
     <!-- MODAL DE ALERTA PARA MÊS ANTERIOR -->
     <div id="modal-bloqueio" class="modal-overlay hidden">
         <div class="modal-card">
@@ -182,7 +188,7 @@
     <!-- MODAL POP-UP DE SOLICITAÇÃO DE BIOMETRIA -->
     <div id="modal-biometria" class="modal-overlay hidden">
         <div class="modal-card">
-
+            <div class="modal-icon">👆</div>
             <h3>Ativar Biometria?</h3>
             <p style="margin: 10px 0; font-size: 0.9rem; color: #4a5568;">Deseja cadastrar biometria/digital para logar com um toque nas próximas vezes?</p>
             <button id="btn-ativar-biometria" class="btn-primary btn-3d btn-block">Sim, Ativar Biometria</button>
