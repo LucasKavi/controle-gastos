@@ -69,7 +69,7 @@ let dadosFinanceiros = { saldoInicial: 0, gastos: [], fechamentos: [] };
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // ==========================================
-// FUNÇÕES AUXILIARES DE BUFFER/BASE64 (WEBAUTHN)
+// FUNÇÕES AUXILIARES DE FORMATAÇÃO E BUFFER
 // ==========================================
 function bufferToBase64(buffer) {
     return btoa(String.fromCharCode(...new Uint8Array(buffer)));
@@ -82,6 +82,26 @@ function base64ToBuffer(base64) {
         bytes[i] = binary.charCodeAt(i);
     }
     return bytes.buffer;
+}
+
+function formatarDataBR(dataStr) {
+    if (!dataStr) return '';
+    if (dataStr.includes('/')) return dataStr;
+    const partes = dataStr.split('-');
+    if (partes.length === 3) {
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return dataStr;
+}
+
+function dataBRParaISO(dataStr) {
+    if (!dataStr) return '';
+    if (dataStr.includes('-')) return dataStr;
+    const partes = dataStr.split('/');
+    if (partes.length === 3) {
+        return `${partes[2]}-${partes[1]}-${partes[0]}`;
+    }
+    return dataStr;
 }
 
 // ==========================================
@@ -251,7 +271,7 @@ if (btnAtivarBiometria) {
                     },
                     pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
                     authenticatorSelection: {
-                        authenticatorAttachment: "platform", // Força o leitor nativo (Digital / Face ID / PIN)
+                        authenticatorAttachment: "platform",
                         userVerification: "required"
                     },
                     timeout: 60000
@@ -435,6 +455,77 @@ window.removerGasto = function(index) {
     atualizarInterface();
 };
 
+// Edição de Lançamento do Mês
+window.editarGasto = function(index) {
+    const item = dadosFinanceiros.gastos[index];
+    const dataISO = dataBRParaISO(item.data);
+
+    const novaDataStr = prompt("Editar Data (DD/MM/YYYY):", formatarDataBR(item.data));
+    if (novaDataStr === null) return;
+
+    const novaDescricao = prompt("Editar Descrição:", item.descricao);
+    if (novaDescricao === null) return;
+
+    const valorFormatado = Number(item.valor).toFixed(2).replace('.', ',');
+    const novoValorStr = prompt("Editar Valor (R$):", valorFormatado);
+    if (novoValorStr === null) return;
+
+    const novoValorNum = parseFloat(novoValorStr.replace('.', '').replace(',', '.')) || 0;
+
+    if (!novaDescricao.trim() || novoValorNum <= 0) {
+        alert("Dados inválidos fornecidos.");
+        return;
+    }
+
+    item.data = dataISOParaNormal(novaDataStr);
+    item.descricao = novaDescricao.trim();
+    item.valor = novoValorNum;
+
+    atualizarInterface();
+};
+
+function dataISOParaNormal(str) {
+    if (str.includes('/')) {
+        const partes = str.split('/');
+        if (partes.length === 3) {
+            return `${partes[2]}-${partes[1]}-${partes[0]}`;
+        }
+    }
+    return str;
+}
+
+// Edição de Item dentro do Fechamento
+window.editarItemFechamento = function(idxFechamento, idxItem) {
+    const fechamento = dadosFinanceiros.fechamentos[idxFechamento];
+    if (!fechamento || !fechamento.itens || !fechamento.itens[idxItem]) return;
+
+    const item = fechamento.itens[idxItem];
+
+    const novaDataStr = prompt("Editar Data (DD/MM/YYYY):", formatarDataBR(item.data));
+    if (novaDataStr === null) return;
+
+    const novaDescricao = prompt("Editar Descrição:", item.descricao);
+    if (novaDescricao === null) return;
+
+    if (!novaDescricao.trim()) {
+        alert("A descrição não pode ser vazia.");
+        return;
+    }
+
+    item.data = dataISOParaNormal(novaDataStr);
+    item.descricao = novaDescricao.trim();
+
+    atualizarInterface();
+};
+
+// Exclusão de Fechamento Inteiro
+window.excluirFechamento = function(idxFechamento) {
+    if (confirm("Tem certeza que deseja excluir o fechamento deste mês inteiro?")) {
+        dadosFinanceiros.fechamentos.splice(idxFechamento, 1);
+        atualizarInterface();
+    }
+};
+
 // Fechar Mês Atual
 if (btnFecharMes) {
     btnFecharMes.addEventListener('click', () => {
@@ -444,10 +535,14 @@ if (btnFecharMes) {
         }
 
         const totalMes = dadosFinanceiros.gastos.reduce((acc, g) => acc + (Number(g.valor) || 0), 0);
-        const dataHoje = new Date().toLocaleDateString('pt-BR');
+
+        // Obter Mês/Ano atual (MM/YYYY)
+        const agora = new Date();
+        const mesAnoStr = `${String(agora.getMonth() + 1).padStart(2, '0')}/${agora.getFullYear()}`;
 
         dadosFinanceiros.fechamentos.push({
-            dataFechamento: dataHoje,
+            mesAno: mesAnoStr,
+            dataFechamento: agora.toLocaleDateString('pt-BR'),
             totalGasto: totalMes,
             itens: [...dadosFinanceiros.gastos]
         });
@@ -486,18 +581,22 @@ function atualizarInterface() {
         } else {
             dadosFinanceiros.gastos.forEach((gasto, idx) => {
                 const tr = document.createElement('tr');
+                const dataFormatada = formatarDataBR(gasto.data);
                 tr.innerHTML = `
-                    <td>${gasto.data}</td>
+                    <td>${dataFormatada}</td>
                     <td>${gasto.descricao}</td>
                     <td>R$ ${Number(gasto.valor).toFixed(2).replace('.', ',')}</td>
-                    <td><button onclick="removerGasto(${idx})" class="btn-danger btn-sm" style="padding: 2px 8px;">✕</button></td>
+                    <td>
+                        <button onclick="editarGasto(${idx})" class="btn-edit-pencil" title="Editar">✏️</button>
+                        <button onclick="removerGasto(${idx})" class="btn-danger btn-sm" style="padding: 2px 8px;" title="Excluir">✕</button>
+                    </td>
                 `;
                 tabelaBody.appendChild(tr);
             });
         }
     }
 
-    // Histórico de Fechamentos
+    // Histórico de Fechamentos (Estilo Extrato Amarelo)
     if (containerFechamentos) {
         containerFechamentos.innerHTML = '';
         if (dadosFinanceiros.fechamentos.length === 0) {
@@ -505,12 +604,55 @@ function atualizarInterface() {
         } else {
             dadosFinanceiros.fechamentos.forEach((fechamento, idx) => {
                 const card = document.createElement('div');
-                card.className = 'card';
-                card.style.marginBottom = '12px';
+                card.className = 'card-extrato';
+
+                const tituloMes = fechamento.mesAno || `Mês #${idx + 1}`;
+
+                let tabelaItensHTML = '';
+                if (fechamento.itens && fechamento.itens.length > 0) {
+                    fechamento.itens.forEach((item, itemIdx) => {
+                        const dtFormatted = formatarDataBR(item.data);
+                        tabelaItensHTML += `
+                            <tr>
+                                <td>${dtFormatted}</td>
+                                <td>${item.descricao}</td>
+                                <td>R$ ${Number(item.valor).toFixed(2).replace('.', ',')}</td>
+                                <td>
+                                    <button onclick="editarItemFechamento(${idx}, ${itemIdx})" class="btn-edit-pencil" title="Editar Data/Descrição">✏️</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tabelaItensHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum item registrado.</td></tr>';
+                }
+
                 card.innerHTML = `
-                    <h4>Fechamento #${idx + 1} - ${fechamento.dataFechamento}</h4>
-                    <p style="margin: 8px 0; font-weight: bold; color: #1b365d;">Total Fechado: R$ ${Number(fechamento.totalGasto).toFixed(2).replace('.', ',')}</p>
-                    <p style="font-size: 0.85rem; color: #4a5568;">Total de itens: ${fechamento.itens ? fechamento.itens.length : 0}</p>
+                    <div class="extrato-header">
+                        <h4>
+                            <span>Mês ${tituloMes}</span>
+                            <div class="extrato-header-actions">
+                                <button onclick="excluirFechamento(${idx})" class="btn-danger btn-sm" style="padding: 2px 8px;" title="Excluir Fechamento">✕</button>
+                            </div>
+                        </h4>
+                    </div>
+                    <div class="extrato-resumo-info">
+                        <p><span>Data do Fechamento:</span> <strong>${fechamento.dataFechamento || '-'}</strong></p>
+                        <p><span>Total Fechado:</span> <strong>R$ ${Number(fechamento.totalGasto).toFixed(2).replace('.', ',')}</strong></p>
+                    </div>
+                    <table class="extrato-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tabelaItensHTML}
+                        </tbody>
+                    </table>
                 `;
                 containerFechamentos.appendChild(card);
             });
