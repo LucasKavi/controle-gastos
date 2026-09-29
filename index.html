@@ -102,13 +102,17 @@
                 <button id="btn-nav-relatorio" class="btn-nav">Historico de fechamento</button>
             </nav>
 
-            <!-- CARD DE SALDO INICIAL -->
+            <!-- CARD DE SALDO INICIAL E CRÉDITO -->
             <section class="card saldo-card">
                 <div class="saldo-header">
                     <label for="saldo-inicial">Saldo Inicial (R$):</label>
                     <input type="text" id="saldo-inicial" placeholder="0,00" inputmode="decimal">
                 </div>
-                <div class="saldo-info">
+                <div class="saldo-header" style="margin-top: 8px;">
+                    <label for="credito">Crédito (R$):</label>
+                    <input type="text" id="credito" placeholder="0,00" inputmode="decimal" enterkeyhint="done">
+                </div>
+                <div class="saldo-info" style="margin-top: 12px;">
                     <p><span>Total Gasto:</span> <strong id="display-total-gasto">R$ 0,00</strong></p>
                     <p><span>Saldo Restante:</span> <strong id="display-saldo-restante">R$ 0,00</strong></p>
                 </div>

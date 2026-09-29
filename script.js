@@ -40,6 +40,7 @@ const telaRelatorio = document.getElementById('tela-relatorio');
 
 // Elementos Financeiros
 const inputSaldoInicial = document.getElementById('saldo-inicial');
+const inputCredito = document.getElementById('credito');
 const displayTotalGasto = document.getElementById('display-total-gasto');
 const displaySaldoRestante = document.getElementById('display-saldo-restante');
 const formGasto = document.getElementById('form-gasto');
@@ -64,7 +65,7 @@ const btnRecusarBiometria = document.getElementById('btn-recusar-biometria');
 let modoCadastro = false;
 let usuarioAtual = '';
 let senhaAtual = '';
-let dadosFinanceiros = { saldoInicial: 0, gastos: [], fechamentos: [] };
+let dadosFinanceiros = { saldoInicial: 0, credito: 0, gastos: [], fechamentos: [] };
 
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
@@ -391,6 +392,7 @@ async function carregarDadosNuvem() {
         if (res.status === 'sucesso' && res.dados) {
             dadosFinanceiros = {
                 saldoInicial: Number(res.dados.saldoInicial) || 0,
+                credito: Number(res.dados.credito) || 0,
                 gastos: Array.isArray(res.dados.gastos) ? res.dados.gastos : [],
                 fechamentos: Array.isArray(res.dados.fechamentos) ? res.dados.fechamentos : []
             };
@@ -411,6 +413,27 @@ if (inputSaldoInicial) {
         let val = e.target.value.replace(/[^\d,. ]/g, '').replace(',', '.');
         dadosFinanceiros.saldoInicial = parseFloat(val) || 0;
         atualizarCalculos();
+    });
+}
+
+// Processar Valor Adicionado de Crédito ao Pressionar Enter/Ir
+function processarAdicaoCredito() {
+    let valStr = inputCredito.value.replace(/[^\d,. ]/g, '').replace(',', '.');
+    let valNum = parseFloat(valStr) || 0;
+
+    if (valNum > 0) {
+        dadosFinanceiros.credito = (dadosFinanceiros.credito || 0) + valNum;
+        inputCredito.value = '';
+        atualizarInterface();
+    }
+}
+
+if (inputCredito) {
+    inputCredito.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            processarAdicaoCredito();
+        }
     });
 }
 
@@ -556,7 +579,7 @@ if (btnFecharMes) {
 // Cálculos do Painel
 function atualizarCalculos() {
     const totalGasto = dadosFinanceiros.gastos.reduce((acc, g) => acc + (Number(g.valor) || 0), 0);
-    const saldoRestante = dadosFinanceiros.saldoInicial - totalGasto;
+    const saldoRestante = (dadosFinanceiros.saldoInicial + (dadosFinanceiros.credito || 0)) - totalGasto;
 
     const fmt = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
@@ -569,6 +592,10 @@ function atualizarCalculos() {
 function atualizarInterface() {
     if (inputSaldoInicial && !inputSaldoInicial.matches(':focus')) {
         inputSaldoInicial.value = dadosFinanceiros.saldoInicial ? dadosFinanceiros.saldoInicial.toFixed(2).replace('.', ',') : '';
+    }
+
+    if (inputCredito && !inputCredito.matches(':focus')) {
+        inputCredito.value = '';
     }
 
     atualizarCalculos();
@@ -693,7 +720,7 @@ if (btnSair) {
     btnSair.addEventListener('click', () => {
         usuarioAtual = '';
         senhaAtual = '';
-        dadosFinanceiros = { saldoInicial: 0, gastos: [], fechamentos: [] };
+        dadosFinanceiros = { saldoInicial: 0, credito: 0, gastos: [], fechamentos: [] };
         painelPrincipal.classList.add('hidden');
         telaInicio.classList.remove('hidden');
     });
